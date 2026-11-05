@@ -1,0 +1,191 @@
+import type { PosData, Product, PosBooking } from "./pos";
+import { dayKey } from "./pos";
+import { defaultCourts } from "./courts";
+const id = (n: number) =>
+  `00000000-0000-4000-a000-${String(n).padStart(12, "0")}`;
+export function demoData(): PosData {
+  const today = dayKey();
+  const at = (h: number) =>
+    `${today}T${String(h).padStart(2, "0")}:00:00+08:00`;
+  const products: Product[] = [
+    [1, "Spring Water", "DRK-001", "Drinks", 3000, 1200, 48, 10],
+    [2, "Sports Drink", "DRK-002", "Drinks", 6500, 3500, 24, 8],
+    [3, "Iced Coffee", "DRK-003", "Drinks", 9500, 4200, 18, 6],
+    [4, "Energy Bar", "SNK-001", "Snacks", 5500, 2500, 6, 8],
+    [5, "Court Socks", "GEAR-001", "Gear", 15000, 7500, 12, 5],
+    [6, "Overgrip", "GEAR-002", "Gear", 12000, 6000, 4, 5],
+    [7, "Pickleball · 3 pack", "GEAR-003", "Gear", 35000, 18000, 16, 5],
+    [8, "Club Tee", "MERCH-001", "Merch", 65000, 30000, 20, 5],
+  ].map(([n, name, sku, category, price, cost, stock, reorder]) => ({
+    id: id(Number(n)),
+    name: String(name),
+    sku: String(sku),
+    category: String(category),
+    price_cents: Number(price),
+    cost_cents: Number(cost),
+    stock: Number(stock),
+    reorder_level: Number(reorder),
+    active: true,
+    barcode: `4800000${String(n).padStart(5, "0")}`,
+    revision: 0,
+  }));
+  const shift = {
+    id: id(80),
+    opened_at: at(7),
+    closed_at: null,
+    opening_cents: 100000,
+    expected_cents: 132500,
+    counted_cents: null,
+    cashier_id: id(90),
+  };
+  const bookings: PosBooking[] = [
+    {
+      id: id(20),
+      reference: "RC-DEMO1001",
+      customer_name: "Alex Santos",
+      booking_date: today,
+      start_hour: 16,
+      duration: 2,
+      court_id: 1,
+      booking_type: "court",
+      status: "confirmed",
+      total_amount: 400,
+      paid_amount: 200,
+      initial_payment_amount: 200,
+      payment_reference: "DEMO-GC1001",
+      payment_option: "reservation_fee",
+    },
+    {
+      id: id(21),
+      reference: "RC-DEMO1002",
+      customer_name: "Jamie Cruz",
+      booking_date: today,
+      start_hour: 18,
+      duration: 1,
+      court_id: 2,
+      booking_type: "court",
+      status: "awaiting_verification",
+      total_amount: 200,
+      paid_amount: 0,
+      initial_payment_amount: 200,
+      payment_reference: "DEMO-GC1002",
+      payment_option: "full",
+    },
+    {
+      id: id(22),
+      reference: "RC-DEMO1003",
+      customer_name: "Taylor Reyes",
+      booking_date: today,
+      start_hour: 9,
+      duration: 2,
+      court_id: 2,
+      booking_type: "court",
+      status: "confirmed",
+      total_amount: 200,
+      paid_amount: 200,
+      initial_payment_amount: 200,
+      payment_reference: null,
+      payment_option: "full",
+    },
+    {
+      id: id(23),
+      reference: "RC-DEMO1004",
+      customer_name: "Morgan Garcia",
+      booking_date: today,
+      start_hour: 20,
+      duration: 2,
+      court_id: 1,
+      booking_type: "court",
+      status: "awaiting_payment",
+      total_amount: 400,
+      paid_amount: 0,
+      initial_payment_amount: 200,
+      payment_reference: null,
+      payment_option: "reservation_fee",
+    },
+  ];
+  const retail = {
+    id: id(30),
+    number: "RC-000001",
+    kind: "retail" as const,
+    booking_id: null,
+    customer_name: "Walk-in customer",
+    total_cents: 12500,
+    paid_cents: 12500,
+    refunded_cents: 0,
+    status: "completed" as const,
+    created_at: at(9),
+    items: [
+      {
+        product_id: products[0].id,
+        name: "Spring Water",
+        quantity: 2,
+        price_cents: 3000,
+        cost_cents: 1200,
+      },
+      {
+        product_id: products[1].id,
+        name: "Sports Drink",
+        quantity: 1,
+        price_cents: 6500,
+        cost_cents: 3500,
+      },
+    ],
+    method: "cash",
+  };
+  const bookingSales = bookings
+    .filter((b) => b.paid_amount > 0)
+    .map((b, i) => ({
+      id: id(31 + i),
+      number: `RC-00000${i + 2}`,
+      kind: "booking" as const,
+      booking_id: b.id,
+      customer_name: b.customer_name,
+      total_cents: b.total_amount * 100,
+      paid_cents: b.paid_amount * 100,
+      refunded_cents: 0,
+      status: "completed" as const,
+      created_at: at(8),
+      items: [
+        {
+          product_id: null,
+          name: `Court ${b.court_id} · ${b.duration} hours`,
+          quantity: 1,
+          price_cents: b.total_amount * 100,
+          cost_cents: 0,
+        },
+      ],
+      method: b.payment_reference ? "gcash" : "cash",
+    }));
+  return {
+    courts: structuredClone(defaultCourts),
+    products,
+    sales: [retail, ...bookingSales],
+    payments: [
+      {
+        id: id(50),
+        sale_id: retail.id,
+        amount_cents: 12500,
+        method: "cash",
+        reference: null,
+        created_at: at(9),
+        shift_id: shift.id,
+      },
+      ...bookingSales.map((s, i) => ({
+        id: id(51 + i),
+        sale_id: s.id,
+        amount_cents: s.paid_cents,
+        method: s.method as "cash" | "gcash",
+        reference: i === 0 ? "DEMO-GC1001" : null,
+        created_at: at(8),
+        shift_id: i === 0 ? null : shift.id,
+      })),
+    ],
+    refunds: [],
+    shifts: [shift],
+    movements: [],
+    bookings,
+    role: "owner",
+    ready: true,
+  };
+}

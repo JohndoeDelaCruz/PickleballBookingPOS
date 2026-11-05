@@ -1,0 +1,834 @@
+/* Shared workspace design for dashboard, venue administration, and accounts. */
+.dynamic-court-grid { overflow-x: auto !important; }
+.dynamic-court-grid .availability-header,
+.dynamic-court-grid .availability-row {
+  grid-template-columns: 64px repeat(var(--court-columns), minmax(140px, 1fr));
+  min-width: calc(64px + var(--court-columns) * 140px);
+}
+.dynamic-court-grid .court-column-label { overflow-wrap: anywhere; }
+.workspace-app .finance-day-totals { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+@media (max-width: 650px) {
+  .dynamic-court-grid .availability-header,
+  .dynamic-court-grid .availability-row {
+    grid-template-columns: 64px repeat(var(--court-columns), minmax(125px, 1fr));
+    min-width: calc(64px + var(--court-columns) * 125px);
+  }
+}
+.club-app {
+  --header-height: 68px;
+}
+.club-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+.management-section-heading {
+  margin-top: 26px;
+}
+.workspace-content {
+  width: 100%;
+  max-width: 1640px;
+  margin-inline: auto;
+  min-width: 0;
+}
+.workspace-app .panel {
+  background: #fdfefa;
+  border: 1px solid #e2e7dc;
+  border-radius: 8px;
+  box-shadow: none;
+}
+.workspace-app .button,
+.workspace-app .icon-button {
+  min-height: 40px;
+  padding: 10px 14px;
+  border: 1px solid #dfe5d9;
+  border-radius: 6px;
+  background: #fcfdf9;
+  color: #53684d;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+  gap: 8px;
+}
+.workspace-app .button:hover,
+.workspace-app .icon-button:hover {
+  background: #eaf0e2;
+}
+.workspace-app .button-dark {
+  background: #254b3e;
+  color: #fff;
+  border-color: #254b3e;
+}
+.workspace-app .button-dark:hover {
+  background: #376552;
+}
+.workspace-app .button-small {
+  min-height: 36px;
+  padding: 8px 12px;
+}
+.workspace-app .console-page-heading > .button,
+.workspace-app .console-page-heading > .finance-actions {
+  flex-shrink: 0;
+  width: auto;
+  white-space: nowrap;
+}
+.workspace-app .console-page-heading > .finance-actions {
+  flex-wrap: nowrap;
+}
+.workspace-app .icon-button {
+  width: 40px;
+  padding: 0;
+}
+.workspace-app .text-link {
+  color: #376552;
+  font-size: 14px;
+  font-weight: 500;
+}
+.workspace-app .field {
+  gap: 9px;
+  min-width: 0;
+}
+.workspace-app .field > span,
+.workspace-app .field > label {
+  color: #4a5b45;
+  font-size: 14px;
+  font-weight: 500;
+}
+.workspace-app .field input,
+.workspace-app .field select,
+.workspace-app .field textarea {
+  min-width: 0;
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid #dfe5d9;
+  border-radius: 6px;
+  padding: 11px 13px;
+  color: #354b3b;
+  background: #fff;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.workspace-app .field :is(input, select, textarea):focus {
+  border-color: #8aa17a;
+  box-shadow: 0 0 0 3px #e8efdf;
+}
+.workspace-app .field textarea {
+  min-height: 125px;
+  resize: vertical;
+}
+.workspace-app .field-grid {
+  gap: 20px;
+}
+.workspace-app .field small,
+.workspace-app .small-print,
+.workspace-app .toggle-field small {
+  font-size: 13px;
+  line-height: 1.7;
+  color: #68765f;
+}
+.workspace-app .form-section-title {
+  font-size: 18px;
+  line-height: 1.4;
+  font-weight: 500;
+  margin: 0 0 10px;
+}
+.workspace-app .notice,
+.workspace-app .success-message,
+.workspace-app .error-message {
+  border-radius: 7px;
+  font-size: 14px;
+  line-height: 1.7;
+}
+.workspace-app .notice {
+  background: #edf3e5;
+  border-color: #dce5d2;
+  color: #526a43;
+}
+.workspace-app .notice-warning {
+  background: #f7f0e4;
+  border-color: #e9dcc2;
+  color: #80693f;
+}
+.workspace-app .eyebrow {
+  color: #68765f;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+}
+.settings-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.settings-metrics .metric-card > strong {
+  font-size: 26px;
+}
+.settings-section-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  overflow-x: auto;
+  padding: 6px;
+  margin-bottom: 24px;
+  border: 1px solid #e2e7dc;
+  border-radius: 8px;
+  background: #fdfefa;
+  scrollbar-width: thin;
+}
+.settings-section-nav a {
+  flex: none;
+  padding: 10px 16px;
+  border-radius: 5px;
+  color: #596951;
+  font-size: 14px;
+  font-weight: 500;
+}
+.settings-section-nav a:hover,
+.settings-section-nav a:focus-visible {
+  background: #e8f0dc;
+  color: #284a34;
+}
+.venue-settings-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 24px;
+  align-items: start;
+}
+.venue-settings-main,
+.venue-settings-form {
+  display: grid;
+  gap: 24px;
+  min-width: 0;
+}
+.settings-card,
+.venue-schedule-section {
+  scroll-margin-top: 0;
+}
+.settings-card-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 22px 24px;
+  border-bottom: 1px solid #ebeee5;
+}
+.settings-card-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border: 1px solid #e2e8da;
+  border-radius: 8px;
+  background: #f0f4e9;
+  color: #667e51;
+}
+.settings-card-heading h2 {
+  margin: 0 0 5px;
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+.settings-card-heading p {
+  margin: 0;
+  color: #68765f;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.settings-card-body {
+  display: grid;
+  gap: 22px;
+  padding: 24px;
+}
+.settings-details-grid > .field:last-child {
+  grid-column: 1 / -1;
+}
+.settings-card-body > p {
+  margin: 0;
+}
+.settings-qr-upload {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 20px;
+  border: 1px dashed #cbd7be;
+  border-radius: 7px;
+  background: #f7f9f2;
+}
+.settings-qr-upload input {
+  flex: 1;
+}
+.workspace-app .toggle-field {
+  padding: 18px;
+  background: #f0f4e9;
+  border: 1px solid #dde6d0;
+  border-radius: 7px;
+}
+.workspace-app .toggle-field strong {
+  font-size: 14px;
+  font-weight: 600;
+}
+.workspace-save-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  border-radius: 8px;
+  border: 1px solid #e2e7dc;
+  padding: 18px 22px;
+  background: #fdfefa;
+}
+.settings-readiness {
+  position: sticky;
+  top: 92px;
+  padding: 24px;
+}
+.settings-readiness h2 {
+  font-size: 18px;
+  font-weight: 500;
+  margin: 12px 0 10px;
+  line-height: 1.4;
+}
+.settings-readiness p {
+  color: #68765f;
+  font-size: 13px;
+  line-height: 1.8;
+}
+.settings-readiness ul {
+  display: grid;
+  gap: 16px;
+  margin: 24px 0;
+}
+.settings-readiness li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: #68765f;
+}
+.settings-readiness li svg {
+  flex: none;
+  padding: 2px;
+  width: 22px;
+  height: 22px;
+  border: 1px solid #dce2d5;
+  border-radius: 50%;
+  color: #a7b09b;
+}
+.settings-readiness .checklist-done svg {
+  color: #527b35;
+  background: #e8f0dc;
+  border-color: #d8e3c9;
+}
+.settings-schedule-link {
+  width: 100%;
+  margin-top: 22px;
+}
+.workspace-app .schedule-editor {
+  margin-bottom: 0;
+  padding: 24px;
+}
+.workspace-app .schedule-editor-heading h2 {
+  font-size: 18px;
+  font-weight: 500;
+}
+.workspace-app .schedule-draft-status {
+  padding: 5px 9px;
+  border-radius: 5px;
+  background: #eef3e7;
+  color: #667e51;
+  font-size: 12px;
+}
+.workspace-app .schedule-table,
+.workspace-app .schedule-table tbody {
+  display: grid;
+  gap: 16px;
+}
+.workspace-app .schedule-table thead {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  clip-path: inset(50%);
+  overflow: hidden;
+}
+.workspace-app .schedule-table tr {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px 14px;
+  padding: 18px;
+  border: 1px solid #e2e7dc;
+  border-radius: 7px;
+  background: #fafbf7;
+}
+.workspace-app .schedule-table td {
+  display: block;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+}
+.workspace-app .schedule-table td:first-child {
+  grid-column: 1 / -1;
+  padding-right: 40px;
+}
+.workspace-app .schedule-table td:last-child {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+}
+.workspace-app .schedule-table td::before {
+  content: none;
+}
+.workspace-app .schedule-table .field > span,
+.workspace-app .schedule-table .field > label,
+.workspace-app .schedule-day-picker legend {
+  position: static;
+  width: auto;
+  height: auto;
+  clip-path: none;
+  overflow: visible;
+  font-size: 13px;
+  font-weight: 500;
+  color: #4a5b45;
+}
+.workspace-app .schedule-table small {
+  font-size: 12px;
+}
+.workspace-app .schedule-day-picker > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.workspace-app .schedule-day-picker span {
+  width: 32px;
+  min-width: 32px;
+  min-height: 34px;
+  border-radius: 5px;
+  font-size: 12px;
+}
+.workspace-app .schedule-day-picker input:checked + span {
+  background: #e2edcf;
+  color: #355532;
+  border-color: #c9d9b2;
+}
+.workspace-app .admin-stats,
+.workspace-app .finance-stats {
+  gap: 16px;
+  margin-bottom: 25px;
+}
+.workspace-app .stat-card {
+  padding: 22px;
+  background: #e6edda;
+  border-color: transparent;
+}
+.workspace-app .stat-card:nth-child(3n + 2) {
+  background: #e9e4ef;
+}
+.workspace-app .stat-card:nth-child(3n) {
+  background: #f2e9df;
+}
+.workspace-app .stat-card > span {
+  font-size: 12px;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+}
+.workspace-app .stat-card strong {
+  margin-top: 20px;
+  font-family: var(--font-body), sans-serif;
+  font-size: 30px;
+  letter-spacing: -1px;
+  font-weight: 500;
+}
+.workspace-app .stat-card small {
+  font-size: 12px;
+  line-height: 1.7;
+}
+.workspace-app .finance-stats {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.workspace-app .finance-toolbar h3,
+.workspace-app .admin-toolbar h2 {
+  font-size: 18px;
+  font-weight: 500;
+}
+.workspace-app .availability-grid {
+  border: 1px solid #e2e7dc;
+  border-radius: 8px;
+  background: #fdfefa;
+  overflow: hidden;
+}
+.workspace-app .availability-header,
+.workspace-app .admin-table th {
+  background: #f0f4e9;
+  color: #68765f;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: .7px;
+}
+.workspace-app .admin-table td {
+  padding: 16px 20px;
+  border-color: #ebeee5;
+  font-size: 14px;
+}
+.workspace-app .empty-state h2 {
+  font-size: 20px;
+  line-height: 1.4;
+  font-weight: 500;
+}
+.workspace-app .modal {
+  padding: 28px;
+  max-width: min(600px, calc(100vw - 32px));
+}
+.workspace-app .modal-header h2 {
+  font-size: 20px;
+  font-weight: 500;
+}
+.workspace-account-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 650px) minmax(0, 320px);
+  gap: 24px;
+  align-items: start;
+}
+.workspace-app .password-form {
+  max-width: none;
+  width: 100%;
+  padding: 28px;
+}
+.workspace-account-note {
+  padding: 24px;
+}
+.workspace-account-note strong {
+  display: block;
+  margin-block: 16px;
+  overflow-wrap: anywhere;
+  font-weight: 500;
+}
+.workspace-account-note p {
+  color: #68765f;
+  font-size: 14px;
+  line-height: 1.8;
+  margin: 0;
+}
+@media (max-width: 1279px) {
+  .venue-settings-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .settings-readiness {
+    position: static;
+  }
+  .settings-readiness ul {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 1100px) {
+  .settings-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .workspace-account-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .workspace-app .finance-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .settings-metrics .metric-card > strong {
+    font-size: 23px;
+  }
+}
+.court-count { margin-left: auto; }
+.court-manager-list { display: grid; gap: 14px; }
+.court-manager-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: end; gap: 16px; padding: 18px; background: #f7f9f2; border: 1px solid #e2e7dc; border-radius: 7px; }
+.court-active-toggle { display: flex; align-items: center; gap: 8px; min-height: 44px; font-size: 14px; color: #4a5b45; }
+.court-active-toggle input { width: 18px; height: 18px; accent-color: #254b3e; }
+.court-row-error { grid-column: 1 / -1; margin: 0; }
+.court-add-form { display: flex; flex-wrap: wrap; align-items: end; gap: 16px; padding-top: 20px; border-top: 1px solid #e2e7dc; }
+.court-add-form .field { flex: 1; min-width: min(220px, 100%); }
+@media (max-width: 650px) {
+  .court-manager-row { grid-template-columns: minmax(0, 1fr) auto; }
+  .court-manager-row .field { grid-column: 1 / -1; }
+  .court-count { margin-left: 0; }
+}
+@media (max-width: 650px) {
+  .club-app {
+    --header-height: 62px;
+  }
+  .club-topbar .mobile-menu {
+    align-items: center;
+    justify-content: center;
+  }
+  .club-topbar .workspace-crumb {
+    display: none;
+  }
+  .club-app .club-topbar .environment-pill {
+    display: flex;
+  }
+  .workspace-content .console-page-heading {
+    align-items: start;
+  }
+  .workspace-content .heading-actions {
+    width: 100%;
+  }
+  .settings-metrics {
+    gap: 8px;
+  }
+  .settings-metrics .metric-card {
+    padding: 16px 12px;
+  }
+  .settings-metrics .metric-card > strong {
+    font-size: 18px;
+    margin-top: 16px;
+    line-height: 1.35;
+  }
+  .settings-metrics .metric-card > div > span {
+    font-size: 12px;
+    letter-spacing: 0;
+  }
+  .settings-metrics .metric-card svg,
+  .settings-metrics .metric-card p {
+    display: none;
+  }
+  .settings-card-heading,
+  .settings-card-body,
+  .settings-readiness,
+  .workspace-app .schedule-editor,
+  .workspace-app .password-form {
+    padding: 20px;
+  }
+  .workspace-app .field-grid,
+  .workspace-app .admin-stats,
+  .workspace-app .finance-stats,
+  .settings-readiness ul {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .workspace-app .field :is(input, select, textarea) {
+    font-size: 16px;
+  }
+  .workspace-app .schedule-table tr {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .workspace-app .schedule-table td:first-child {
+    padding-right: 22px;
+  }
+  .workspace-app .schedule-day-picker span {
+    width: 30px;
+    min-width: 30px;
+    min-height: 34px;
+  }
+  .workspace-save-bar {
+    padding: 18px;
+  }
+  .settings-section-nav a {
+    padding: 9px 11px;
+  }
+}
+.club-app {
+  --workspace-sidebar-width: 232px;
+}
+.management-sidebar {
+  width: var(--workspace-sidebar-width);
+  padding: 25px 16px 0;
+  overflow: hidden;
+  color: #2c2c25;
+  background: #fcfdf9;
+  border-right: 1px solid #e2e7df;
+  transition: width 220ms ease;
+}
+.management-sidebar-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  flex: none;
+  min-height: 46px;
+  padding: 0 4px 25px;
+}
+.management-sidebar .brand.rally-brand {
+  min-width: 0;
+  gap: 8px;
+  font-size: 27px !important;
+  line-height: 1;
+}
+.management-sidebar .brand-subtitle {
+  max-width: 112px;
+  font-size: 12px;
+  letter-spacing: 0.7px;
+  white-space: normal;
+}
+.management-sidebar .rally-symbol {
+  flex: none;
+  width: 29px;
+  height: 29px;
+}
+.management-collapse-toggle,
+.management-close-toggle {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid #dfe5d8;
+  border-radius: 7px;
+  background: transparent;
+  color: #596951;
+}
+.management-collapse-toggle:hover,
+.management-close-toggle:hover {
+  color: #284a34;
+  background: #eef2e8;
+}
+.management-close-toggle,
+.management-backdrop {
+  display: none;
+}
+.management-sidebar-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: #d8dfd1 transparent;
+  overscroll-behavior: contain;
+  padding: 4px;
+  margin-inline: -4px;
+}
+.management-nav-heading {
+  padding: 0 14px;
+  margin-bottom: 14px;
+  font-size: 12px;
+  line-height: 1.5;
+  letter-spacing: 1.3px;
+  white-space: nowrap;
+}
+.management-sidebar nav {
+  display: grid;
+  gap: 6px;
+}
+.management-sidebar nav a,
+.management-sidebar nav button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 46px;
+  border: 0;
+  border-radius: 7px;
+  padding: 12px 14px;
+  background: transparent;
+  color: #596951;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  white-space: nowrap;
+  transition: background 160ms ease, color 160ms ease;
+}
+.management-sidebar nav a:hover,
+.management-sidebar nav button:hover {
+  background: #eef2e8;
+}
+.management-sidebar nav .selected {
+  color: #284a34;
+  background: #e8f0dc;
+  font-weight: 600;
+}
+.management-sidebar svg {
+  flex-shrink: 0;
+}
+.management-sidebar-bottom {
+  flex: none;
+  margin-top: auto;
+  padding-top: 12px;
+}
+.management-sidebar .sidebar-utility {
+  min-height: 44px;
+  border-radius: 7px;
+}
+.management-sidebar .sidebar-utility:hover {
+  background: #eef2e8;
+}
+.management-sidebar .sidebar-profile {
+  margin-top: 10px;
+  padding: 18px 5px;
+}
+.management-sidebar .sidebar-profile small {
+  font-size: 12px;
+}
+.club-app:has(.management-sidebar) .club-main {
+  width: calc(100% - var(--workspace-sidebar-width));
+  margin-left: var(--workspace-sidebar-width);
+  transition: width 220ms ease, margin-left 220ms ease;
+}
+@media (min-width: 651px) {
+  .club-app:has(.management-sidebar.is-collapsed) {
+    --workspace-sidebar-width: 80px;
+  }
+  .management-sidebar.is-collapsed {
+    padding-inline: 12px;
+  }
+  .management-sidebar.is-collapsed .management-sidebar-heading {
+    flex-direction: column;
+    gap: 16px;
+    padding-inline: 0;
+    padding-bottom: 20px;
+  }
+  .management-sidebar.is-collapsed .brand > span,
+  .management-sidebar.is-collapsed .management-label,
+  .management-sidebar.is-collapsed .management-nav-heading,
+  .management-sidebar.is-collapsed .profile-dot,
+  .management-sidebar.is-collapsed .nav-count {
+    display: none;
+  }
+  .management-sidebar.is-collapsed nav a,
+  .management-sidebar.is-collapsed nav button,
+  .management-sidebar.is-collapsed .sidebar-utility,
+  .management-sidebar.is-collapsed .sidebar-profile {
+    justify-content: center;
+    gap: 0;
+    padding-inline: 0;
+  }
+}
+@media (max-width: 650px) {
+  .management-sidebar {
+    display: none;
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 45;
+    width: min(288px, 88vw);
+    height: 100svh;
+    align-self: stretch;
+    padding: 22px 16px 0;
+    box-shadow: 12px 0 48px #173d3522;
+    transition: none;
+  }
+  .management-sidebar.sidebar-open {
+    display: flex;
+  }
+  .management-close-toggle {
+    display: grid;
+    width: 44px;
+    height: 44px;
+  }
+  .management-collapse-toggle {
+    display: none;
+  }
+  .management-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: #17302566;
+    border: 0;
+    padding: 0;
+  }
+  .club-app:has(.management-sidebar) .club-main {
+    width: 100%;
+    margin-left: 0;
+    transition: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .management-sidebar,
+  .club-app:has(.management-sidebar) .club-main {
+    transition: none;
+  }
+}
