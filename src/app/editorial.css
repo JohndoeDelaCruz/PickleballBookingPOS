@@ -1105,30 +1105,46 @@ textarea::placeholder {
   transform: rotate(8deg);
 }
 .finish-information {
-  display: flex;
-  justify-content: space-between;
-  gap: 35px;
-  padding-top: 30px;
-  border-top: 1px solid #25251f40;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 32px;
+  padding-top: 36px;
+  border-top: 2px solid #25251f80;
+}
+.finish-information > div {
+  min-width: 0;
+  padding-left: 18px;
+  border-left: 2px solid #25251f80;
 }
 .finish-information > div > span {
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 1.4px;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 1.6px;
+  line-height: 1.4;
   display: block;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 .finish-information p {
-  font-size: 16px;
-  line-height: 1.9;
+  font-size: clamp(22px, 2.2vw, 30px);
+  font-weight: 600;
+  letter-spacing: -0.6px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
   margin: 0;
 }
 .finish-information a {
-  font-size: 14px;
-  display: flex;
+  font-size: 16px;
+  font-weight: 700;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
-  margin-top: 9px;
+  max-width: 100%;
+  min-height: 32px;
+  margin-top: 14px;
+  overflow-wrap: anywhere;
+}
+.finish-information a > svg {
+  flex: none;
 }
 .finish-information a:hover {
   text-decoration: underline;
@@ -1136,7 +1152,7 @@ textarea::placeholder {
 }
 .finish-information small {
   display: block;
-  font-size: 12px;
+  font-size: 14px;
   color: #5b3626;
   margin-top: 7px;
 }
@@ -1846,10 +1862,10 @@ textarea::placeholder {
     width: 70px;
   }
   .finish-information {
-    gap: 20px;
+    gap: 28px;
   }
   .finish-information p {
-    font-size: 16px;
+    font-size: 22px;
   }
   .reservation-workspace .booking-layout {
     grid-template-columns: 1fr;
@@ -2212,27 +2228,27 @@ textarea::placeholder {
   .finish-information {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 27px 20px;
-    padding-top: 25px;
+    gap: 28px;
+    padding-top: 28px;
   }
   .finish-information > div:first-child {
     grid-column: 1/-1;
   }
   .finish-information > div > span {
-    font-size: 12px;
+    font-size: 14px;
     letter-spacing: 1.1px;
-    margin-bottom: 9px;
+    margin-bottom: 12px;
   }
   .finish-information p {
-    font-size: 16px;
-    line-height: 1.9;
+    font-size: 24px;
+    line-height: 1.5;
   }
   .finish-information small {
-    font-size: 12px;
+    font-size: 14px;
   }
   .finish-information a {
-    font-size: 14px;
-    margin-top: 7px;
+    font-size: 16px;
+    margin-top: 12px;
   }
   .club-footer {
     padding: 32px 20px 0;
