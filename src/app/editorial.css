@@ -293,7 +293,7 @@ textarea::placeholder {
   width: 55%;
   max-width: 760px;
   margin-left: 5%;
-  padding: calc(var(--header-height) + 48px) 0 104px;
+  padding: calc(var(--header-height) + 48px) 0 80px;
 }
 .hero-kicker {
   margin: 0 0 24px;
@@ -303,7 +303,7 @@ textarea::placeholder {
   line-height: 1.6;
 }
 .hero-title {
-  font: 400 clamp(88px, 10.8vw, 176px)/0.94 var(--font-display), sans-serif;
+  font: 400 clamp(48px, 6.4vw, 116px)/0.98 var(--font-display), sans-serif;
   letter-spacing: -0.075em;
   margin: 0 0 24px;
 }
@@ -364,21 +364,6 @@ textarea::placeholder {
 .hero-actions svg {
   flex: none;
 }
-.hero-bottom {
-  position: absolute;
-  bottom: 24px;
-  left: 5%;
-  right: 5%;
-  display: flex;
-  justify-content: space-between;
-  gap: 24px;
-  border-top: 1px solid #ffffff40;
-  padding-top: 18px;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.8px;
-  line-height: 1.7;
-}
 .hero-reservation {
   padding-inline: 3.4%;
 }
@@ -396,7 +381,7 @@ textarea::placeholder {
     width: auto;
     max-width: none;
     margin: 0;
-    padding: calc(260px + var(--header-height)) 24px 84px;
+    padding: calc(260px + var(--header-height)) 24px 56px;
     justify-content: flex-end;
   }
   .hero-kicker {
@@ -404,12 +389,12 @@ textarea::placeholder {
     letter-spacing: 1px;
   }
   .hero-title {
-    font-size: 15.6vw;
-    white-space: nowrap;
+    font-size: clamp(42px, 11vw, 64px);
+    white-space: normal;
     margin-bottom: 18px;
   }
   .hero-title .title-mask {
-    display: inline-block;
+    display: block;
   }
   .hero-title em {
     font-size: 1.06em;
@@ -431,16 +416,6 @@ textarea::placeholder {
   }
   .hero-reserve-link {
     padding: 14px 16px;
-  }
-  .hero-bottom {
-    left: 24px;
-    right: 24px;
-    bottom: 22px;
-    padding-top: 12px;
-    letter-spacing: 0.6px;
-  }
-  .hero-bottom > span:last-child {
-    display: none;
   }
   .hero-reservation {
     padding-inline: 20px;

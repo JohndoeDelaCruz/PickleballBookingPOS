@@ -32,10 +32,10 @@ export default async function Home() {
             <p className="hero-kicker">PICKLEBALL, WITH A SOCIAL SIDE.</p>
             <h1 className="hero-title" id="editorial-title">
               <span className="title-mask">
-                <span data-title-word="">Good</span>
+                <span data-title-word="">Same time</span>
               </span>{" "}
               <span className="title-mask">
-                <em data-title-word="">game.</em>
+                <em data-title-word="">tomorrow?</em>
               </span>
             </h1>
             <div className="hero-deck">
@@ -52,10 +52,6 @@ export default async function Home() {
                 </a>
               </div>
             </div>
-          </div>
-          <div className="hero-bottom">
-            <span>PHILIPPINES · YOUR NEW THIRD PLACE</span>
-            <span>A LITTLE COMPETITION. A LOT OF CONNECTION.</span>
           </div>
         </div>
         <div className="hero-reservation" id="reserve">
