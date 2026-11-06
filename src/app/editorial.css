@@ -242,7 +242,8 @@ textarea::placeholder {
 }
 .title-mask {
   display: inline-block;
-  overflow: hidden;
+  /* Fade-only titles need room for italic strokes and punctuation overhang. */
+  overflow: visible;
   vertical-align: bottom;
   padding: 0 0.035em 0.13em;
   margin-bottom: -0.13em;
