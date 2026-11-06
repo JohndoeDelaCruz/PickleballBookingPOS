@@ -26,6 +26,7 @@ export default async function AdminPage({
 }
 
 async function CalendarData({ date }: { date: string }) {
+  const venueRequest = getVenue();
   const supabase = await createClient();
   await supabase.rpc("expire_unpaid_holds");
   const [{ data, error }, { venue }] = await Promise.all([
@@ -34,7 +35,7 @@ async function CalendarData({ date }: { date: string }) {
       .select("*")
       .eq("booking_date", date)
       .order("start_hour"),
-    getVenue(),
+    venueRequest,
   ]);
   if (error)
     return (

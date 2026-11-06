@@ -19,8 +19,11 @@ export async function proxy(request: NextRequest) {
       },
     },
   );
-  if (request.cookies.getAll().some((cookie) => cookie.name.startsWith("sb-")))
-    await supabase.auth.getUser();
+  if (request.cookies.getAll().some((cookie) => cookie.name.startsWith("sb-"))) {
+    // Refresh/verify tokens here. Protected pages and actions still call getUser()
+    // for the current server-confirmed account and enforce database permissions.
+    await supabase.auth.getClaims();
+  }
   return response;
 }
 export const config = {

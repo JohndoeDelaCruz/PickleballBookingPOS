@@ -9,12 +9,12 @@ import {
 } from "./finance";
 
 export async function readFinanceMonth(month: string) {
-  const inventory = await getCourtInventory();
-  if (!inventory.loaded) throw new Error("Court details could not be loaded.");
   const client = await createClient();
-  const { data, error } = await client.rpc("get_finance_month", {
-    p_month: `${month}-01`,
-  });
+  const [inventory, { data, error }] = await Promise.all([
+    getCourtInventory(),
+    client.rpc("get_finance_month", { p_month: `${month}-01` }),
+  ]);
+  if (!inventory.loaded) throw new Error("Court details could not be loaded.");
   if (error) throw error;
   if (!data?.length) throw new Error("No finance summary returned.");
   const breakdown = await client.rpc("get_court_finance_month", { p_month: `${month}-01` });

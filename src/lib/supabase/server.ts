@@ -1,7 +1,9 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { cache } from "react";
 
-export async function createClient() {
+// Share a client only within the current server render, never across users.
+export const createClient = cache(async () => {
   const store = await cookies();
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -21,4 +23,4 @@ export async function createClient() {
       },
     },
   );
-}
+});

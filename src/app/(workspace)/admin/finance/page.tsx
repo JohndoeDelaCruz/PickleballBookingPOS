@@ -28,15 +28,17 @@ export default async function FinancePage({
 
 async function FinanceData({ period, page }: { period: ReturnType<typeof reportPeriod>; page: number }) {
   try {
-    // Expiration runs before reading the daily log so both views agree.
-    const days = await readFinanceMonth(period.month);
-    const [notes, { bookings, count }] = await Promise.all([
+    // Keep expiration before the daily log, while unrelated reads run alongside it.
+    const monthRequest = readFinanceMonth(period.month);
+    const [days, notes, { bookings, count }, inventory] = await Promise.all([
+      monthRequest,
       readFinanceDayNotes(period.date),
-      readFinanceBookings(period.date, page),
+      monthRequest.then(() => readFinanceBookings(period.date, page)),
+      getCourtInventory(),
     ]);
     return (
       <FinanceDashboard
-        courts={(await getCourtInventory()).courts}
+        courts={inventory.courts}
         key={`${period.date}:${page}`}
         period={period}
         days={days}
