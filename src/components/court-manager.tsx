@@ -39,12 +39,11 @@ export function CourtManager({ initial, ready, onChange }: {
     <section id="venue-courts" className="console-panel settings-card">
       <header className="settings-card-heading">
         <span className="settings-card-icon"><CalendarDays size={20} /></span>
-        <div><h2>Courts</h2><p>Add courts, choose their names, and manage availability.</p></div>
+        <div><h2>Courts</h2></div>
         <span className="subtle-pill court-count">{activeCourts(courts).length} active · {courts.length} total</span>
       </header>
       <div className="settings-card-body">
         {!ready && <div className="notice notice-warning" role="status">Court management is awaiting setup. Your existing courts remain available; court changes are disabled for now.</div>}
-        <p className="small-print">Active courts appear in booking and the workspace. Inactive courts keep their history. Resolve upcoming court bookings, blocks, and shared open-play reservations before deactivating a court.</p>
         <div className="court-manager-list">
           {courts.map((court) => <CourtRow key={`${court.id}:${court.revision}`} court={court} ready={ready} onSaved={saved} onDeleted={deleted} />)}
         </div>
@@ -67,8 +66,10 @@ export function CourtManager({ initial, ready, onChange }: {
         </form>
         {error && <div className="error-message" role="alert">{error}</div>}
         {message && <div className="success-message" role="status">{message}</div>}
-        <p className="small-print">Court changes save here separately from venue preferences and hours. Open-play player limits stay as configured when courts are added.</p>
-        <p className="small-print">Delete courts added by mistake before they have any booking or block records. Deactivate courts with history to keep those records.</p>
+        <details className="workspace-disclosure">
+          <summary>About deactivating and deleting courts</summary>
+          <p className="small-print">Inactive courts keep their booking history. Resolve upcoming bookings, blocks, and shared open-play reservations before deactivating. Only courts without booking or block records can be deleted. Adding courts does not change open-play player limits.</p>
+        </details>
       </div>
     </section>
   );
@@ -99,7 +100,7 @@ function CourtRow({ court, ready, onSaved, onDeleted }: {
       aria-label={`Active court ${court.id}`} onChange={(e) => setActive(e.target.checked)} disabled={!ready || pending} />Active</label>
     <div className="court-row-actions">
       <button className="console-button" aria-label={`Save court ${court.id}`} disabled={!ready || pending || !changed}>
-        <Save size={15} />{pending && !confirming ? "Saving…" : "Save court"}
+        <Save size={15} />{pending && !confirming ? "Saving…" : "Save"}
       </button>
       <button type="button" className="console-button court-delete-button" aria-label={`Delete court ${court.id}`}
         disabled={!ready || pending} onClick={() => { setError(""); setConfirming(true); }}>

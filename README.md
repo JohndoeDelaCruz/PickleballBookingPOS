@@ -19,6 +19,8 @@ npm run dev -- --port 3001
 
 All management pages, including staff account settings, share the dashboard's sidebar, cards, forms, and responsive layout. A compact Menu button opens the sidebar on phones. Sidebar links can open a dashboard section directly, for example `/staff?tab=inventory`. Venue preferences and booking schedules keep separate save controls.
 
+The staff sidebar groups daily operations and finance, with venue settings below and account settings in the profile link. Page titles use task names, and report explanations are expandable. Venue settings has six tabs that preserve drafts; saving reveals any invalid field's tab. Booking finance separates the monthly summary from the daily ledger (`?view=daily`), with exports matched to the selected view. On phones, adding a product reveals a cart shortcut. These presentation changes require no database migration.
+
 Management routes share a persistent workspace layout and one skeleton system. Initial page loads and server-backed date/report refreshes show placeholders matched to overview, POS, reservations, inventory, transactions, reports, calendar, venue settings (including courts), or account settings. Local tab switches use data already loaded and remain immediate. Skeleton animation respects reduced-motion preferences; route URLs and access checks are unchanged.
 
 The provided public Supabase connection is in the Git-ignored `.env.local`. `.env.example` contains placeholders. No service-role credential is used. This is a new project and does not connect to the Ascent database.

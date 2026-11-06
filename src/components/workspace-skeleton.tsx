@@ -14,7 +14,7 @@ function Block({ className = "" }: { className?: string }) {
 }
 function Heading() {
   return <div className="console-page-heading">
-    <div className={styles.heading}><Block className={styles.kicker} /><Block className={styles.title} /><Block className={styles.description} /></div>
+    <div className={styles.heading}><Block className={styles.title} /></div>
     <Block className={styles.action} />
   </div>;
 }
@@ -65,22 +65,18 @@ function Calendar({ courtCount = 2 }: { courtCount?: number }) {
     </div>)}
   </div></>;
 }
-function Finance({ courtCount = 2 }: { courtCount?: number }) {
-  return <><Toolbar /><Stats count={6} finance /><Block className={styles.reportNote} /><Table columns={Math.min(12, courtCount * 2 + 6)} rows={6} /></>;
+function Finance({ courtCount = 2, daily = false }: { courtCount?: number; daily?: boolean }) {
+  return <><div className="workspace-tabs"><Block className={styles.tab} /><Block className={styles.tab} /></div><Toolbar />
+    {daily ? <><div className="finance-day-totals">{Array.from({ length: Math.min(8, courtCount + 2) }, (_, index) => <div key={index}><Block className={styles.label} /><Block className={styles.value} /><Block className={styles.hint} /></div>)}</div><Panel><Fields count={2} /></Panel><Table columns={8} rows={4} /></>
+      : <><Stats count={6} finance /><Block className={styles.reportNote} /><Table columns={Math.min(12, courtCount * 2 + 6)} rows={6} /></>}
+  </>;
 }
-function Settings({ totalCourtCount = 2 }: { totalCourtCount?: number }) {
-  return <><Stats settings /><div className="settings-section-nav">{Array.from({ length: 6 }, (_, index) => <Block className={styles.tab} key={index} />)}</div>
+function Settings() {
+  return <><div className={styles.toolbar}><Block className={styles.label} /><Block className={styles.label} /></div>
+    <div className="workspace-tabs">{Array.from({ length: 6 }, (_, index) => <Block className={styles.tab} key={index} />)}</div>
     <div className="venue-settings-layout"><div className={styles.stack}>
-      <Panel><Block className={styles.description} />
-        {Array.from({ length: Math.min(3, totalCourtCount) }, (_, index) => <div className={styles.courtRow} key={index}>
-          <div className={styles.field}><Block className={styles.label} /><Block className={styles.input} /></div>
-          <Block className={styles.toggle} /><div className={styles.courtActions}><Block className={styles.courtButton} /><Block className={styles.courtDelete} /></div>
-        </div>)}
-        <div className={styles.courtAdd}><Block className={styles.input} /><Block className={styles.courtButton} /></div>
-        <Block className={styles.line} />
-      </Panel>
-      <Panel><Fields /></Panel>
-    </div><Panel><Block className={styles.line} />{Array.from({ length: 5 }, (_, index) => <div className={styles.checklist} key={index}><Block className={styles.dot} /><Block /></div>)}<Block className={styles.notice} /></Panel></div>
+      <Panel><Fields count={7} /></Panel><Block className={styles.button} /><Block className={styles.button} />
+    </div></div>
   </>;
 }
 function Account() {
@@ -91,8 +87,8 @@ function Reports() {
   return <><Stats /><div className="overview-grid"><Panel><div className={styles.chart}>{Array.from({ length: 7 }, (_, index) => <Block key={index} className={styles.bar} />)}</div></Panel><Panel><Block className={styles.notice} /><Block className={styles.line} /><Block className={styles.line} /></Panel></div><Table rows={3} /></>;
 }
 
-export function WorkspaceSkeleton({ view, heading = true, courtCount, totalCourtCount }: {
-  view: WorkspaceView; heading?: boolean; courtCount?: number; totalCourtCount?: number;
+export function WorkspaceSkeleton({ view, heading = true, courtCount, financeView = "month" }: {
+  view: WorkspaceView; heading?: boolean; courtCount?: number; totalCourtCount?: number; financeView?: "daily" | "month";
 }) {
   return <>
     <p className="sr-only" role="status">Loading {labels[view]}…</p>
@@ -102,8 +98,8 @@ export function WorkspaceSkeleton({ view, heading = true, courtCount, totalCourt
       {view === "overview" ? <Overview courtCount={courtCount} />
         : view === "pos" ? <PointOfSale />
         : view === "calendar" ? <Calendar courtCount={courtCount} />
-        : view === "finance" ? <Finance courtCount={courtCount} />
-        : view === "settings" ? <Settings totalCourtCount={totalCourtCount} />
+        : view === "finance" ? <Finance courtCount={courtCount} daily={financeView === "daily"} />
+        : view === "settings" ? <Settings />
         : view === "account" ? <Account />
         : view === "reports" ? <Reports />
         : <>{view === "inventory" && <div className={styles.summary}><Block /><Block /><Block /></div>}<Toolbar /><Table columns={view === "inventory" ? 6 : 5} /></>}

@@ -118,10 +118,9 @@ export function ScheduleEditor({ initial }: { initial: VenueSettings }) {
     <form className="panel schedule-editor" onSubmit={submit}>
       <div className="schedule-editor-heading">
         <div>
-          <h2>Booking schedule</h2>
+          <h2>Hours & rates</h2>
           <p className="small-print">
-            Set private-booking hours and open-play sessions. Hours without a
-            time block are closed.
+            Set private-court and open-play sessions. Unscheduled hours are closed.
           </p>
         </div>
         <span className="schedule-draft-status">

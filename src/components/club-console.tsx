@@ -26,8 +26,9 @@ import {
 } from "lucide-react";
 import { ConsoleFrame } from "./console-frame";
 import { WorkspaceSkeleton } from "./workspace-skeleton";
+import { WorkspacePageHeading } from "./workspace-page-heading";
 import { useWorkspace } from "./workspace-context";
-import { workspaceTab, type WorkspaceTab as Tab } from "@/lib/workspace";
+import { workspaceTab, workspaceTabs, type WorkspaceTab as Tab } from "@/lib/workspace";
 import { activeCourts, calendarCourts, courtName, defaultCourts } from "@/lib/courts";
 import { demoData } from "@/lib/demo";
 import { applyDemoCommand } from "@/lib/demo-command";
@@ -592,43 +593,7 @@ export function ClubConsole({
               </div>
             </div>
           )}
-          <div className="console-page-heading">
-            <div>
-              <span className="console-kicker">
-                {tab === "overview"
-                  ? "A GOOD DAY AT THE CLUB"
-                  : tab === "pos"
-                    ? "READY WHEN YOU ARE"
-                    : "EVERY DETAIL, IN ONE PLACE"}
-              </span>
-              <h1>
-                {tab === "overview"
-                  ? "Your club, at a glance."
-                  : tab === "pos"
-                    ? "Let’s ring it up."
-                    : tab === "bookings"
-                      ? "Make room for play."
-                      : tab === "inventory"
-                        ? "Keep the club stocked."
-                        : tab === "transactions"
-                          ? "Every sale, accounted for."
-                          : "The numbers behind the game."}
-              </h1>
-              <p>
-                {tab === "overview"
-                  ? "A little less admin. A little more time on court."
-                  : tab === "pos"
-                    ? "Court essentials, good refreshments, and a smooth checkout."
-                    : tab === "bookings"
-                      ? "Review GCash payments, confirm courts, and collect balances."
-                      : tab === "inventory"
-                        ? "Products, stock levels, and every movement in between."
-                        : tab === "transactions"
-                          ? "Bookings and counter purchases share the same payment ledger."
-                          : "Track money received, refunds, and outstanding booking balances."}
-              </p>
-            </div>
-            <div className="heading-actions">
+          <WorkspacePageHeading title={workspaceTabs.find((item) => item.id === tab)!.label} actions={<>
               {["overview", "transactions", "reports", "bookings"].includes(
                 tab,
               ) && (
@@ -687,8 +652,7 @@ export function ClubConsole({
                   Export CSV
                 </button>
               )}
-            </div>
-          </div>
+            </>} />
           {isNavigating && <WorkspaceSkeleton view={tab} heading={false}
             courtCount={activeCourts(data.courts).length} />}
           <div hidden={isNavigating}>
@@ -707,8 +671,8 @@ export function ClubConsole({
                   value={String(
                     todayBookings.filter((b) => b.status === "confirmed")
                       .length,
-                  ).padStart(2, "0")}
-                  hint={`${pending.length} payments waiting for review`}
+                  )}
+                  hint={`${pending.length} payment${pending.length === 1 ? "" : "s"} to verify`}
                   icon={<CalendarDays size={19} />}
                   tone="lavender"
                 />
@@ -731,7 +695,7 @@ export function ClubConsole({
                 <section className="console-panel">
                   <div className="panel-heading">
                     <h2>
-                      On court today{" "}
+                      Court schedule{" "}
                       <span className="subtle-pill">
                         {todayBookings.length}
                       </span>
@@ -788,7 +752,7 @@ export function ClubConsole({
                             ))}
                           {!todayBookings.some((b) => b.court_id === n) && (
                             <span className="timeline-empty">
-                              Ready for your next reservation
+                              No bookings
                             </span>
                           )}
                         </div>
@@ -808,7 +772,7 @@ export function ClubConsole({
                 </section>
                 <section className="console-panel review-panel">
                   <div className="panel-heading">
-                    <h2>A little attention</h2>
+                    <h2>Needs attention</h2>
                     <span className="attention-count">
                       {pending.length + lowStock.length}
                     </span>
@@ -821,8 +785,7 @@ export function ClubConsole({
                       <QrCode size={20} />
                     </span>
                     <span>
-                      <strong>GCash payments to review</strong>
-                      <small>Check incoming transfers and confirm</small>
+                      <strong>Payments to verify</strong>
                     </span>
                     <b>{pending.length}</b>
                     <ChevronRight size={15} />
@@ -835,8 +798,7 @@ export function ClubConsole({
                       <Package size={20} />
                     </span>
                     <span>
-                      <strong>Products running low</strong>
-                      <small>A quick restock keeps play going</small>
+                      <strong>Low stock</strong>
                     </span>
                     <b>{lowStock.length}</b>
                     <ChevronRight size={15} />
@@ -845,8 +807,8 @@ export function ClubConsole({
                     <span className="live-dot" />
                     <span>
                       {shift
-                        ? "Your cashier shift is open"
-                        : "No active cashier shift"}
+                        ? "Shift open"
+                        : "Shift closed"}
                     </span>
                     <button onClick={() => open(shift ? "close" : "open")}>
                       {shift ? "Close shift" : "Open shift"}
@@ -864,10 +826,6 @@ export function ClubConsole({
                 </div>
                 {tableSales(data.sales.slice(0, 5))}
               </section>
-              <div className="console-footnote">
-                <CheckCircle2 size={14} /> One club. One record. Court payments
-                and counter sales, connected.
-              </div>
             </>
           )}
           {tab === "pos" && (
@@ -950,12 +908,12 @@ export function ClubConsole({
                 </div>
                 {!activeProducts.length && (
                   <Empty
-                    title="Your counter starts here"
-                    text="Add products in Inventory, then record their opening stock."
+                    title="No products available"
+                    text="Add products and stock in Inventory."
                   />
                 )}
               </section>
-              <aside className="cart-panel">
+              <aside id="pos-cart" tabIndex={-1} aria-label="Current order" className="cart-panel">
                 <div className="cart-heading">
                   <h2>
                     Current order{" "}
@@ -978,7 +936,6 @@ export function ClubConsole({
                   <span>W</span>
                   <div>
                     <strong>Walk-in customer</strong>
-                    <small>Customer name can be added at checkout</small>
                   </div>
                 </div>
                 <div className="cart-lines">
@@ -1023,21 +980,12 @@ export function ClubConsole({
                   {!cartItems.length && (
                     <div className="empty-cart">
                       <ShoppingBasket size={38} strokeWidth={1.2} />
-                      <h3>A fresh order.</h3>
-                      <p>Tap a product to get started.</p>
+                      <h3>Cart is empty</h3>
+                      <p>Select a product to start a sale.</p>
                     </div>
                   )}
                 </div>
                 <div className="cart-totals">
-                  <div>
-                    <span>Subtotal</span>
-                    <strong>{peso(total)}</strong>
-                  </div>
-                  <p>
-                    Prices shown are the final selling prices.
-                    <br />
-                    Tax invoice configuration is pending venue setup.
-                  </p>
                   <div className="cart-grand-total">
                     <span>Total</span>
                     <strong>{peso(total)}</strong>
@@ -1063,6 +1011,12 @@ export function ClubConsole({
                   )}
                 </div>
               </aside>
+              {cartItems.length > 0 && <a href="#pos-cart" className="pos-mobile-cart">
+                <ShoppingBasket size={19} aria-hidden="true" />
+                <span>View cart · {cartItems.reduce((sum, item) => sum + item.quantity, 0)}</span>
+                <strong>{peso(total)}</strong>
+                <ArrowUpRight size={18} aria-hidden="true" />
+              </a>}
             </div>
           )}
           {tab === "bookings" && (
@@ -1158,8 +1112,8 @@ export function ClubConsole({
                 </table>
                 {!data.bookings.length && (
                   <Empty
-                    title="The courts are waiting"
-                    text="Reservations appear here after customers book or staff adds a walk-in."
+                    title="No reservations"
+                    text="Customer bookings and staff walk-ins appear here."
                   />
                 )}
               </div>
@@ -1199,7 +1153,6 @@ export function ClubConsole({
                       onChange={(e) => setSearch(e.target.value)}
                     />
                   </div>
-                  <span className="subtle-pill">Stock ledger enabled</span>
                 </div>
                 <div className="console-table-wrap">
                   <table className="console-table">
@@ -1269,8 +1222,8 @@ export function ClubConsole({
                   </table>
                   {!data.products.length && (
                     <Empty
-                      title="Room for the essentials"
-                      text="Add your first product, then record stock received."
+                      title="No products"
+                      text="Add a product to start tracking stock."
                     />
                   )}
                 </div>
@@ -1361,7 +1314,7 @@ export function ClubConsole({
               <div className="overview-grid">
                 <section className="console-panel">
                   <div className="panel-heading">
-                    <h2>How customers paid</h2>
+                    <h2>Payment methods</h2>
                     <span className="subtle-pill">Net of refunds</span>
                   </div>
                   <div className="payment-breakdown">
@@ -1385,14 +1338,17 @@ export function ClubConsole({
                       </div>
                     ))}
                   </div>
-                  <p className="report-note">
+                  <details className="workspace-disclosure report-note">
+                    <summary>How collections are counted</summary>
+                    <p>
                     Collections follow the payment date. A reservation fee and
                     its later balance are separate receipts of money.
-                  </p>
+                    </p>
+                  </details>
                 </section>
                 <section className="console-panel">
                   <div className="panel-heading">
-                    <h2>Your cashier shifts</h2>
+                    <h2>Cashier shifts</h2>
                     <button
                       disabled={!data.ready}
                       onClick={() => open(shift ? "close" : "open")}
@@ -1449,10 +1405,6 @@ export function ClubConsole({
             </>
           )}
           </div>
-        </div>
-        <div className="console-bottom-note">
-          RALLY CLUB <span>Made for the love of the game.</span>
-          {demo && <small>Placeholder branding · Sample data</small>}
         </div>
       {toast && (
         <div className="console-toast" role="status">
@@ -1567,24 +1519,22 @@ export function ClubConsole({
               </>
             ) : (
               <form onSubmit={submit}>
-                <span className="console-kicker">
-                  {demo ? "PRESENTATION MODE" : "CLUB OPERATIONS"}
-                </span>
+                {demo && <span className="console-kicker">DEMO</span>}
                 <h2>
                   {
                     (
                       {
-                        checkout: "Complete the order.",
+                        checkout: "Complete sale",
                         product: selected
-                          ? "Edit product."
-                          : "Add an essential.",
-                        stock: "Keep stock in check.",
-                        open: "Start a fresh shift.",
-                        close: "Close the day’s drawer.",
-                        refund: "Record a manual refund.",
-                        balance: "Settle the balance.",
-                        verify: "Check. Confirm. Play.",
-                        newbooking: "Try a sample booking.",
+                          ? "Edit product"
+                          : "Add product",
+                        stock: "Adjust stock",
+                        open: "Open shift",
+                        close: "Close shift",
+                        refund: "Record refund",
+                        balance: "Collect balance",
+                        verify: "Verify GCash payment",
+                        newbooking: "Sample booking",
                       } as Record<string, string>
                     )[modal]
                   }
@@ -2048,7 +1998,7 @@ function Metric({
   return (
     <article className={`metric-card ${tone}`}>
       <div>
-        <span>{label}</span>
+        <span>{label.charAt(0) + label.slice(1).toLowerCase()}</span>
         {icon}
       </div>
       <strong>{value}</strong>

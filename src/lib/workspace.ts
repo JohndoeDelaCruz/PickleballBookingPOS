@@ -4,7 +4,7 @@ export const workspaceTabs = [
   { id: "bookings", label: "Reservations" },
   { id: "inventory", label: "Inventory" },
   { id: "transactions", label: "Transactions" },
-  { id: "reports", label: "Reports" },
+  { id: "reports", label: "Collections report" },
 ] as const;
 
 export type WorkspaceTab = (typeof workspaceTabs)[number]["id"];

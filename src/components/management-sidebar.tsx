@@ -2,13 +2,14 @@
 
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   ArrowLeft,
   LogOut,
   PanelLeftClose,
   PanelLeftOpen,
   RefreshCw,
+  Settings2,
   X,
 } from "lucide-react";
 import { Brand } from "./brand";
@@ -38,6 +39,7 @@ export function ManagementSidebar({
   closeMobile.current = onMobileClose;
   const contentId = useId();
   const router = useRouter();
+  const path = usePathname();
 
   useEffect(() => {
     try {
@@ -141,7 +143,6 @@ export function ManagementSidebar({
           </button>
         </div>
         <div id={contentId} className="management-sidebar-scroll">
-          <span className="console-kicker management-nav-heading">Club management</span>
           {children}
         </div>
         <div className="management-sidebar-bottom">
@@ -169,14 +170,17 @@ export function ManagementSidebar({
               <span className="management-label">Sign out</span>
             </button>
           )}
-          <div className="sidebar-profile" title={demo ? "Club owner · Presentation account" : `${role ?? "Club management"} · Staff account`}>
+          {demo ? <div className="sidebar-profile">
+            <span aria-hidden="true">RC</span>
+            <div className="management-label"><strong>Demo workspace</strong><small>Sample data</small></div>
+          </div> : <Link href="/account" className="sidebar-profile" title="Account settings" aria-current={path === "/account" ? "page" : undefined} onNavigate={onMobileClose}>
             <span aria-hidden="true">RC</span>
             <div className="management-label">
-              <strong>{demo ? "Club owner" : role ?? "Club management"}</strong>
-              <small>{demo ? "Presentation account" : "Staff account"}</small>
+              <strong>{role ?? "Staff"}</strong>
+              <small>Account settings</small>
             </div>
-            <span className="profile-dot" aria-hidden="true" />
-          </div>
+            <Settings2 size={16} className="management-label sidebar-account-icon" aria-hidden="true" />
+          </Link>}
         </div>
       </aside>
     </>

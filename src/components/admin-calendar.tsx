@@ -1,4 +1,5 @@
 "use client";
+import { WorkspacePageHeading } from "./workspace-page-heading";
 import type { CSSProperties } from "react";
 import { activeCourts, calendarCourts, courtName, defaultCourts } from "@/lib/courts";
 import { useState, useTransition } from "react";
@@ -78,20 +79,15 @@ export function AdminCalendar({
   }
   return (
     <>
-      <div className="console-page-heading">
-        <div>
-          <span className="console-kicker">COURT CALENDAR</span>
-          <h1>Make room for play.</h1>
-          <p>Manage court time, add walk-ins, and keep every session on track.</p>
-        </div>
+      <WorkspacePageHeading title="Court calendar" actions={
         <button
           className="button button-dark button-small"
           onClick={() => setCreateOpen(true)}
         >
           <Plus size={16} />
-          Add booking / block
+          Add booking or block
         </button>
-      </div>
+      } />
       <div className="admin-stats">
         <div className="panel stat-card">
           <span>Active reservations</span>
@@ -233,8 +229,8 @@ export function AdminCalendar({
         {!bookings.length ? (
           <div className="empty-state" style={{ border: 0 }}>
             <CalendarDays />
-            <h2>A clear court, a fresh start.</h2>
-            <p>No reservations for this date.</p>
+            <h2>No reservations</h2>
+            <p>There are no bookings for this date.</p>
           </div>
         ) : (
           <div className="table-scroll">

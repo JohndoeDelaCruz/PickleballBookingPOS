@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { getSession } from "@/lib/data";
 import { ChangePasswordForm } from "@/components/change-password-form";
+import { WorkspacePageHeading } from "@/components/workspace-page-heading";
 
 export const metadata: Metadata = {
   title: "Account settings",
@@ -11,23 +12,17 @@ export const metadata: Metadata = {
 };
 
 export default async function AccountPage() {
-  const { user, staff } = await getSession();
+  const { user, staff, role } = await getSession();
   if (!user) redirect("/login?next=/account");
   if (staff) return (
     <>
-      <div className="console-page-heading">
-        <div>
-          <span className="console-kicker">YOUR ACCOUNT</span>
-          <h1>Keep your account secure.</h1>
-          <p>Manage the password you use to access your club workspace.</p>
-        </div>
-      </div>
+      <WorkspacePageHeading title="Account settings" />
       <div className="workspace-account-grid">
         <ChangePasswordForm />
         <aside className="console-panel workspace-account-note">
-          <span className="console-kicker">SIGNED IN AS</span>
+          <h2>Signed-in account</h2>
           <strong>{user.email}</strong>
-          <p>Use a unique password with at least 8 characters. Your current password is required to save a new one.</p>
+          <span className="status-pill status-ok workspace-account-role">{role ?? "Staff"}</span>
         </aside>
       </div>
     </>
