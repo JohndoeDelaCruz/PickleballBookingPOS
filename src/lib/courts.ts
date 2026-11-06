@@ -11,6 +11,10 @@ export const courtSchema = z.object({
   active: z.boolean(),
   revision: z.number().int().min(0).nullable(),
 });
+export const deleteCourtSchema = z.object({
+  id: z.number().int().min(1).max(32767),
+  revision: z.number().int().min(0),
+});
 export function activeCourts(courts: Court[] = defaultCourts) {
   return courts.filter((court) => court.active);
 }

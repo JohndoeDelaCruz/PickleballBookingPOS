@@ -74,7 +74,7 @@ function Settings({ totalCourtCount = 2 }: { totalCourtCount?: number }) {
       <Panel><Block className={styles.description} />
         {Array.from({ length: Math.min(3, totalCourtCount) }, (_, index) => <div className={styles.courtRow} key={index}>
           <div className={styles.field}><Block className={styles.label} /><Block className={styles.input} /></div>
-          <Block className={styles.toggle} /><Block className={styles.courtButton} />
+          <Block className={styles.toggle} /><div className={styles.courtActions}><Block className={styles.courtButton} /><Block className={styles.courtDelete} /></div>
         </div>)}
         <div className={styles.courtAdd}><Block className={styles.input} /><Block className={styles.courtButton} /></div>
         <Block className={styles.line} />

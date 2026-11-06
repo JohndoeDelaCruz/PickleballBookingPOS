@@ -9,7 +9,26 @@ import { z } from "zod";
 import { balancePaymentSchema } from "@/lib/payment";
 import { venueSettingPatch } from "@/lib/venue-setting";
 import { scheduleConfigSchema } from "@/lib/schedule";
-import { courtSchema, type Court } from "@/lib/courts";
+import { courtSchema, deleteCourtSchema, type Court } from "@/lib/courts";
+
+export async function deleteCourt(input: unknown): Promise<{ deletedId?: number; error?: string }> {
+  const parsed = deleteCourtSchema.safeParse(input);
+  if (!parsed.success) return { error: "Reload the courts before deleting one." };
+  try {
+    const db = await staffClient();
+    const { data, error } = await db.rpc("delete_court", {
+      p_id: parsed.data.id, p_revision: parsed.data.revision,
+    });
+    if (error) return { error: error.message.startsWith("Booking:")
+      ? bookingError(error)
+      : error.code === "PGRST202"
+        ? "Court deletion needs the latest database update. Apply migration 015 in Supabase first."
+        : "The court could not be deleted. Refresh the courts and try again." };
+    if (data?.id !== parsed.data.id) return { error: "The court could not be deleted. Refresh the courts and try again." };
+    revalidatePath("/", "layout");
+    return { deletedId: data.id };
+  } catch (error) { return { error: (error as Error).message }; }
+}
 
 export async function saveCourt(input: unknown): Promise<{ court?: Court; error?: string }> {
   const parsed = courtSchema.safeParse(input);

@@ -538,11 +538,16 @@
 .court-active-toggle { display: flex; align-items: center; gap: 8px; min-height: 44px; font-size: 14px; color: #4a5b45; }
 .court-active-toggle input { width: 18px; height: 18px; accent-color: #254b3e; }
 .court-row-error { grid-column: 1 / -1; margin: 0; }
+.court-row-actions, .court-delete-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.court-delete-actions { justify-content: flex-end; margin-top: 20px; }
+.console-button.court-delete-button { color: #9c3434; border-color: #e5c6c1; background: #fff7f5; }
+.console-button.court-delete-button:hover:not(:disabled) { color: #fff; background: #9c3434; border-color: #9c3434; }
 .court-add-form { display: flex; flex-wrap: wrap; align-items: end; gap: 16px; padding-top: 20px; border-top: 1px solid #e2e7dc; }
 .court-add-form .field { flex: 1; min-width: min(220px, 100%); }
 @media (max-width: 650px) {
   .court-manager-row { grid-template-columns: minmax(0, 1fr) auto; }
   .court-manager-row .field { grid-column: 1 / -1; }
+  .court-row-actions { grid-column: 1 / -1; justify-content: flex-end; }
   .court-count { margin-left: 0; }
 }
 @media (max-width: 650px) {

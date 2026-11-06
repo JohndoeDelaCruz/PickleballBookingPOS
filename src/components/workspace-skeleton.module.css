@@ -36,6 +36,8 @@
 .courtRow { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 16px; align-items: end; padding: 18px; border: 1px solid #e2e7dc; border-radius: 7px; background: #f7f9f2; }
 .toggle { width: 60px; height: 22px; margin-bottom: 11px; }
 .courtButton { width: 110px; height: 40px; }
+.courtActions { display: flex; gap: 8px; }
+.courtDelete { width: 80px; height: 40px; }
 .courtAdd { display: flex; gap: 16px; align-items: end; }
 .courtAdd > .input { flex: 1; }
 .courtAdd > .courtButton { flex: none; }
@@ -55,6 +57,7 @@
   .tableRow { padding-inline: 18px; }
   .courtRow { grid-template-columns: minmax(0, 1fr) auto; padding: 16px; }
   .courtRow > .field { grid-column: 1 / -1; }
+  .courtActions { grid-column: 1 / -1; justify-content: flex-end; }
   .courtAdd { flex-wrap: wrap; }
   .courtAdd > .input { min-width: 100%; }
   .metric { min-height: 125px; }

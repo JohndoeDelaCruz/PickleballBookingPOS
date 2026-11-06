@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFile, readdir } from "node:fs/promises";
 import { PGlite } from "@electric-sql/pglite";
 import { btree_gist } from "@electric-sql/pglite/contrib/btree_gist";
-import { activeCourts, calendarCourts, courtName, courtSchema, type Court } from "../src/lib/courts";
+import { activeCourts, calendarCourts, courtName, courtSchema, deleteCourtSchema, type Court } from "../src/lib/courts";
 import { bookingSchema, canBook } from "../src/lib/booking";
 import { defaultVenue } from "../src/lib/types";
 import { courtFinance, financeMetrics, monthCsv, sumFinance, type FinanceDay } from "../src/lib/finance";
@@ -16,6 +16,9 @@ test("court lists preserve historical courts, names, and arbitrary valid IDs", (
   assert.equal(courtName(courts, 99), "Court 99");
   assert.equal(courtSchema.safeParse({ id: null, revision: null, name: "  Garden court  ", active: true }).data?.name, "Garden court");
   assert.equal(courtSchema.safeParse({ id: 3, revision: 0, name: " ", active: true }).success, false);
+  assert.equal(deleteCourtSchema.safeParse({ id: 3, revision: 0 }).success, true);
+  for (const input of [{ id: 0, revision: 0 }, { id: 32768, revision: 0 }, { id: 3 }, { id: 3, revision: null }, { id: 3, revision: -1 }])
+    assert.equal(deleteCourtSchema.safeParse(input).success, false);
   assert.equal(bookingSchema.shape.court_id.safeParse(7).success, true);
   assert.equal(bookingSchema.shape.court_id.safeParse(32768).success, false);
   assert.equal(canBook({ ...defaultVenue, booking_enabled: true, gcash_name: "Club", gcash_qr_url: "https://example.com/qr.png", courts: [] }), false);
@@ -143,6 +146,58 @@ test("court migration preserves IDs, enforces roles and availability, and report
       })]);
       assert.ok(reply.id, reply.error);
       await assert.rejects(() => save(owner, 4, "Practice court", false, 4), /shared open-play/);
+    });
+
+    await db.exec(await readFile("supabase/migrations/202611070015_court_deletion.sql", "utf8"));
+    const remove = (user: string, court: Court) => call<Court>(user, "delete_court", [court.id, court.revision]);
+    let unused = await save(owner, null, "Added by mistake", true, null);
+    const manager = "00000000-0000-4000-a000-000000000005";
+    await db.query("insert into auth.users values($1,'manager@example.com')", [manager]);
+    await db.query("insert into public.staff_members(user_id,role) values($1,'manager')", [manager]);
+
+    await t.test("court deletion is denied to anonymous users, players, cashiers, and direct client writes", async () => {
+      await assert.rejects(() => remove(player, unused), /Manager access/);
+      await assert.rejects(() => remove(cashier, unused), /Manager access/);
+      await assert.rejects(() => as(player, () => db.query("select public.delete_court($1,$2)", [unused.id, unused.revision]), "anon"), /permission denied/);
+      await assert.rejects(() => remove("", unused), /Manager access/);
+      await assert.rejects(() => as(owner, () => db.query("delete from public.courts where id=$1", [unused.id])), /permission denied/);
+      assert.equal((await db.query("select id from public.courts where id=$1", [unused.id])).rows.length, 1);
+    });
+    await t.test("court deletion rejects stale revisions and preserves all booking and block history", async () => {
+      const old = unused;
+      unused = await save(owner, unused.id, "Unused court", true, unused.revision);
+      await assert.rejects(() => remove(owner, old), /Another manager/);
+      await assert.rejects(() => call(owner, "delete_court", [unused.id, null]), /Another manager/);
+      for (const id of [2, 3, 4]) {
+        const court = (await db.query<Court>("select * from public.courts where id=$1", [id])).rows[0];
+        await assert.rejects(() => remove(owner, court), /booking or block history/);
+      }
+      assert.equal((await db.query("select id from public.bookings where reference='HISTORY'")).rows.length, 1);
+    });
+    await t.test("shared open play prevents deleting active courts while managers can remove unused inactive courts", async () => {
+      await assert.rejects(() => remove(owner, unused), /shared open-play/);
+      const inactive = await save(owner, null, "Unused inactive", false, null);
+      assert.equal((await remove(manager, inactive)).id, inactive.id);
+      assert.equal((await db.query("select id from public.courts where id=$1", [inactive.id])).rows.length, 0);
+      await assert.rejects(() => remove(manager, inactive), /Another manager/);
+      await assert.rejects(() => as(owner, () => db.query("select nextval('private.court_id_seq')")), /permission denied/);
+    });
+    await t.test("the last active court is protected until reservations are paused", async () => {
+      await db.exec("update public.bookings set status='cancelled' where status in ('awaiting_payment','awaiting_verification','confirmed','blocked')");
+      await db.query("update public.courts set active=false,revision=revision+1 where id<>$1", [unused.id]);
+      await assert.rejects(() => remove(owner, unused), /Pause online reservations/);
+      await db.exec("update public.venue_settings set booking_enabled=false");
+      const before = (await db.query<{ count: number }>("select count(*)::int as count from public.bookings")).rows[0].count;
+      assert.equal((await remove(owner, unused)).id, unused.id);
+      assert.equal((await db.query<{ count: number }>("select count(*)::int as count from public.bookings")).rows[0].count, before);
+    });
+    await t.test("deleted court IDs are never reused by newly added courts", async () => {
+      const first = await save(owner, null, "Temporary court", true, null);
+      await remove(owner, first);
+      const replacement = await save(owner, null, "Replacement court", true, null);
+      assert.ok(replacement.id > first.id);
+      await assert.rejects(() => remove(owner, first), /Another manager/);
+      assert.equal((await db.query("select id from public.courts where id=$1", [replacement.id])).rows.length, 1);
     });
   } finally { await db.close(); }
 });

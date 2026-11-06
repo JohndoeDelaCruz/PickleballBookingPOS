@@ -27,7 +27,7 @@ The provided public Supabase connection is in the Git-ignored `.env.local`. `.en
 
 The publishable key cannot create tables or assign privileged users. A project owner must perform these setup steps in the new Supabase project:
 
-1. Open **SQL Editor** for project `glipsgajkrlbcngtkstt` and run **`supabase/setup.sql` once on a fresh database**. This file bundles migrations 001–014. Do not run it on Ascent or rerun it after setup. For subsequent updates, apply only new migration files in order.
+1. Open **SQL Editor** for project `glipsgajkrlbcngtkstt` and run **`supabase/setup.sql` once on a fresh database**. This file bundles migrations 001–015. Do not run it on Ascent or rerun it after setup. For subsequent updates, apply only new migration files in order.
 2. In **Authentication → URL Configuration**, use `http://localhost:3001` for local Site URL and allow `http://localhost:3001/auth/callback**`. Add the actual production origin/callback before deployment. The app uses PKCE and supports verified email signup, sign-in, recovery, and password changes.
 3. Create and verify the owner's account through `/login`. Edit the email placeholder in **`supabase/bootstrap-owner.sql`**, then run that script in SQL Editor. Never assign staff roles from the browser.
 4. Sign in and visit `/admin/settings`. Set the venue details, final rates and hours, GCash recipient name, QR image, hold duration, and cancellation policy. Enable online reservations only after these details are correct.
@@ -61,6 +61,8 @@ Online-only. If connectivity is lost, do not treat an unconfirmed write as a com
 Court count is configurable through **Venue settings → Courts**. Owners/managers can add named courts and activate/deactivate them (up to 100 court records). Existing IDs, booking history, and saved receipts are preserved. Upcoming court reservations, blocks, and shared open-play reservations must be resolved before deactivation; the last active court cannot be deactivated while online reservations are enabled. Open-play player limits remain separately configured and do not multiply when courts are added. Calendars, dashboard timelines, booking labels, per-court finance summaries and CSV exports use the court list, including inactive courts in historical reports. Court changes, venue preferences, and schedules have separate save controls.
 
 For an existing database at migration 013, run only **`supabase/migrations/202611050014_court_management.sql`** once in that client's Supabase SQL Editor. It upgrades the existing courts without replacing them. Until applied, the two existing courts remain available and court editing is disabled.
+
+Court rows include a Delete action with confirmation for unused courts. Booking or block history always prevents deletion; deactivate those courts instead. Active courts cannot be deleted during upcoming shared open play or when they are the last active court and online reservations are enabled. Deleted IDs are never reused. Existing databases at migration 014 must apply **`supabase/migrations/202611070015_court_deletion.sql`** once to enable deletion. This update creates the deletion function without deleting any existing courts; do not rerun `setup.sql` on an existing database.
 
 Whole-hour booking slots remain in this release. Rental fees are supported; tracking individual paddle assets/returns and memberships is outside this first release. Product catalogue and booking queries have explicit safety limits; high-volume reporting requires paginated server reports.
 

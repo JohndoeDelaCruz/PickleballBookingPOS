@@ -1,27 +1,38 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { CalendarDays, Plus, Save } from "lucide-react";
-import { saveCourt } from "@/app/actions";
+import { CalendarDays, Plus, Save, Trash2 } from "lucide-react";
+import { deleteCourt, saveCourt } from "@/app/actions";
 import { activeCourts, type Court } from "@/lib/courts";
+import { Modal } from "./modal";
 
 export function CourtManager({ initial, ready, onChange }: {
   initial: Court[]; ready: boolean; onChange: (courts: Court[]) => void;
 }) {
   const [courts, setCourts] = useState(initial);
+  const currentCourts = useRef(initial);
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [pending, startTransition] = useTransition();
   const router = useRouter();
-  useEffect(() => { setCourts(initial); }, [initial]);
+  useEffect(() => { currentCourts.current = initial; setCourts(initial); }, [initial]);
   function saved(court: Court) {
-    const next = courts.some((c) => c.id === court.id)
-      ? courts.map((c) => c.id === court.id ? court : c) : [...courts, court];
+    const next = currentCourts.current.some((c) => c.id === court.id)
+      ? currentCourts.current.map((c) => c.id === court.id ? court : c) : [...currentCourts.current, court];
+    currentCourts.current = next;
     setCourts(next);
     onChange(next);
     setMessage(`${court.name} saved. ${activeCourts(next).length} active courts are available.`);
+    router.refresh();
+  }
+  function deleted(court: Court) {
+    const next = currentCourts.current.filter((c) => c.id !== court.id);
+    currentCourts.current = next;
+    setCourts(next);
+    onChange(next);
+    setMessage(`${court.name} deleted.`);
     router.refresh();
   }
   return (
@@ -35,7 +46,7 @@ export function CourtManager({ initial, ready, onChange }: {
         {!ready && <div className="notice notice-warning" role="status">Court management is awaiting setup. Your existing courts remain available; court changes are disabled for now.</div>}
         <p className="small-print">Active courts appear in booking and the workspace. Inactive courts keep their history. Resolve upcoming court bookings, blocks, and shared open-play reservations before deactivating a court.</p>
         <div className="court-manager-list">
-          {courts.map((court) => <CourtRow key={`${court.id}:${court.revision}`} court={court} ready={ready} onSaved={saved} />)}
+          {courts.map((court) => <CourtRow key={`${court.id}:${court.revision}`} court={court} ready={ready} onSaved={saved} onDeleted={deleted} />)}
         </div>
         {!courts.length && <p className="small-print">No courts yet. Add your first court to get started.</p>}
         <form className="court-add-form" onSubmit={(event) => {
@@ -57,18 +68,22 @@ export function CourtManager({ initial, ready, onChange }: {
         {error && <div className="error-message" role="alert">{error}</div>}
         {message && <div className="success-message" role="status">{message}</div>}
         <p className="small-print">Court changes save here separately from venue preferences and hours. Open-play player limits stay as configured when courts are added.</p>
+        <p className="small-print">Delete courts added by mistake before they have any booking or block records. Deactivate courts with history to keep those records.</p>
       </div>
     </section>
   );
 }
 
-function CourtRow({ court, ready, onSaved }: { court: Court; ready: boolean; onSaved: (court: Court) => void }) {
+function CourtRow({ court, ready, onSaved, onDeleted }: {
+  court: Court; ready: boolean; onSaved: (court: Court) => void; onDeleted: (court: Court) => void;
+}) {
   const [name, setName] = useState(court.name);
   const [active, setActive] = useState(court.active);
   const [error, setError] = useState("");
+  const [confirming, setConfirming] = useState(false);
   const [pending, startTransition] = useTransition();
   const changed = name.trim() !== court.name || active !== court.active;
-  return <form className="court-manager-row" onSubmit={(event) => {
+  return <><form className="court-manager-row" onSubmit={(event) => {
     event.preventDefault(); setError("");
     startTransition(async () => {
       const result = await saveCourt({ id: court.id, revision: court.revision, name, active });
@@ -82,9 +97,31 @@ function CourtRow({ court, ready, onSaved }: { court: Court; ready: boolean; onS
     </label>
     <label className="court-active-toggle"><input type="checkbox" checked={active}
       aria-label={`Active court ${court.id}`} onChange={(e) => setActive(e.target.checked)} disabled={!ready || pending} />Active</label>
-    <button className="console-button" aria-label={`Save court ${court.id}`} disabled={!ready || pending || !changed}>
-      <Save size={15} />{pending ? "Saving…" : "Save court"}
-    </button>
-    {error && <div className="error-message court-row-error" role="alert">{error}</div>}
-  </form>;
+    <div className="court-row-actions">
+      <button className="console-button" aria-label={`Save court ${court.id}`} disabled={!ready || pending || !changed}>
+        <Save size={15} />{pending && !confirming ? "Saving…" : "Save court"}
+      </button>
+      <button type="button" className="console-button court-delete-button" aria-label={`Delete court ${court.id}`}
+        disabled={!ready || pending} onClick={() => { setError(""); setConfirming(true); }}>
+        <Trash2 size={15} />Delete
+      </button>
+    </div>
+    {error && !confirming && <div className="error-message court-row-error" role="alert">{error}</div>}
+  </form>
+    {confirming && <Modal title="Delete court?" onClose={() => { if (!pending) { setConfirming(false); setError(""); } }}>
+      <p>Delete <strong>{court.name}</strong> (Court #{court.id})? This permanently removes the court. Courts with booking or block history must be deactivated instead.</p>
+      {error && <div className="error-message" role="alert">{error}</div>}
+      <div className="court-delete-actions">
+        <button type="button" className="console-button" disabled={pending} onClick={() => { setConfirming(false); setError(""); }}>Cancel</button>
+        <button type="button" className="console-button court-delete-button" disabled={pending} onClick={() => {
+          setError("");
+          startTransition(async () => {
+            const result = await deleteCourt({ id: court.id, revision: court.revision });
+            if (result.error) setError(result.error);
+            else if (result.deletedId === court.id) onDeleted(court);
+          });
+        }}><Trash2 size={15} />{pending ? "Deleting…" : "Delete court"}</button>
+      </div>
+    </Modal>}
+  </>;
 }
