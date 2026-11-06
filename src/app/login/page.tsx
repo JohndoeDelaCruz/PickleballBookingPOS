@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ArrowUpRight } from "lucide-react";
 import { redirect } from "next/navigation";
 import { AuthForm } from "@/components/auth-form";
 import { getSession } from "@/lib/data";
@@ -23,7 +24,7 @@ export default async function LoginPage({
     <main id="main" className="player-entry">
       <div className="player-entry-title">
         <span className="editorial-label">PLAYERS’ ENTRANCE / RALLY CLUB</span>
-        <h1>In good company.</h1>
+        <p className="player-entry-headline">In good company.</p>
         <p>Your reservations. Your next game. All in one place.</p>
       </div>
       <div className="player-entry-form">
@@ -40,8 +41,7 @@ export default async function LoginPage({
         />
       </div>
       <div className="player-entry-return">
-        <Link href="/book">← Browse the courts</Link>
-        <Link href="/demo">Explore the club demo ↗</Link>
+        <Link href="/demo">Explore the club demo <ArrowUpRight size={16} aria-hidden="true" /></Link>
       </div>
     </main>
   );

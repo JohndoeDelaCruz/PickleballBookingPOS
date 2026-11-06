@@ -5,7 +5,7 @@ import { ArrowUp, ArrowUpRight } from "lucide-react";
 
 export function Footer({ staff = false }: { staff?: boolean }) {
   const path = usePathname();
-  if (path.startsWith("/demo") || path.startsWith("/staff") || path.startsWith("/admin") || (path === "/account" && staff)) return null;
+  if (path === "/login" || path.startsWith("/demo") || path.startsWith("/staff") || path.startsWith("/admin") || (path === "/account" && staff)) return null;
   return (
     <footer className="club-footer">
       <div className="club-footer-upper">

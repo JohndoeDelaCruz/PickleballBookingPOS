@@ -117,10 +117,10 @@ export function AuthForm({
     setMessage("");
   }
   return (
-    <div className="auth-form">
+    <div className="auth-form" data-mode={mode}>
       <div className="auth-intro">
         <span className="eyebrow">YOUR NEXT SESSION STARTS HERE</span>
-        <h2>
+        <h1>
           {mode === "signup"
             ? "Join the club."
             : mode === "forgot"
@@ -128,7 +128,7 @@ export function AuthForm({
               : mode === "reset"
                 ? "A fresh start."
                 : "Welcome back."}
-        </h2>
+        </h1>
         <p>
           {mode === "signup"
             ? "Create your account and make room for more court time."
@@ -139,9 +139,8 @@ export function AuthForm({
                 : "Log in to reserve a court and keep track of your next game."}
         </p>
       </div>
-      <div className="auth-tabs">
-        {(mode === "login" || mode === "signup") && (
-          <>
+      {(mode === "login" || mode === "signup") && (
+          <div className="auth-tabs">
             <button
               className={mode === "login" ? "active" : ""}
               disabled={busy}
@@ -156,9 +155,8 @@ export function AuthForm({
             >
               Create account
             </button>
-          </>
-        )}
-      </div>
+          </div>
+      )}
       <form className="auth-fields-form" onSubmit={submit}>
         <div className="auth-fields">
           {mode === "signup" && (
@@ -257,8 +255,8 @@ export function AuthForm({
           )
         )}
       </div>
-      <div className="auth-privacy">
-        {mode === "signup" && (
+      {mode === "signup" && (
+        <div className="auth-privacy">
           <p className="small-print">
             By creating an account, you agree to our{" "}
             <Link href="/privacy" style={{ textDecoration: "underline" }}>
@@ -266,8 +264,8 @@ export function AuthForm({
             </Link>
             . We use your details to manage your reservations.
           </p>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1444,52 +1444,82 @@ textarea::placeholder {
   white-space: nowrap;
   font-size: 14px;
 }
+body:has(.player-entry) {
+  --header-height: 72px;
+}
+.club-header.club-header-auth {
+  display: flex;
+  justify-content: space-between;
+  padding-block: 10px;
+}
+.auth-header-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-size: 14px;
+  font-weight: 600;
+}
 .player-entry {
-  max-width: 600px;
-  width: calc(100% - 40px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 460px);
+  align-content: center;
+  align-items: center;
+  gap: 18px 64px;
+  max-width: 1040px;
+  width: calc(100% - 64px);
   margin: 0 auto;
-  padding: 54px 0 70px;
+  padding: 28px 0;
 }
 .player-entry-title {
-  text-align: center;
-  margin-bottom: 30px;
+  text-align: left;
 }
 .player-entry-title > .editorial-label {
   font-size: 12px;
   color: #626257;
 }
-.player-entry-title > h1 {
+.player-entry-title > .player-entry-headline {
   font:
     italic 400 clamp(45px, 5vw, 68px)/1 var(--font-serif),
     Georgia,
     serif;
   letter-spacing: -2px;
-  margin: 18px 0;
+  color: var(--ink);
+  margin: 14px 0;
 }
-.player-entry-title > p {
+.player-entry-title > p:not(.player-entry-headline) {
   font-size: 16px;
   line-height: 1.8;
   color: #626257;
+  margin-bottom: 0;
 }
 .player-entry-form {
+  width: 100%;
   max-width: 460px;
-  margin: auto;
+  margin: 0 auto;
   background: #f9f8f2;
   border: 1px solid #d9d5c8;
-  padding: 33px;
+  padding: 26px;
 }
-.player-entry-form h2 {
+.player-entry-form .auth-form {
+  max-width: none;
+  min-width: 0;
+}
+.player-entry-form h1 {
   font:
-    600 22px/1.3 var(--font-body),
+    600 26px/1.2 var(--font-body),
     sans-serif;
   letter-spacing: -0.6px;
+  margin: 0 0 8px;
 }
 .player-entry-form .auth-intro > .eyebrow {
   display: none;
 }
 .player-entry-form .auth-intro > p {
-  font-size: 16px;
-  line-height: 1.9;
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 0;
+  margin: 0 0 18px;
   color: #626257;
 }
 .player-entry-form input {
@@ -1497,14 +1527,19 @@ textarea::placeholder {
   background: white;
   border: 1px solid #d6d1c3;
   font-size: 16px;
+  min-height: 44px;
+  padding: 10px 12px;
 }
 .player-entry-form .auth-tabs {
   border-radius: 0;
   background: #e9e5d9;
+  margin-bottom: 16px;
 }
 .player-entry-form .auth-tabs button {
   border-radius: 0;
   font-size: 14px;
+  min-height: 44px;
+  padding: 10px;
 }
 .player-entry-form .auth-tabs button.active {
   background: var(--ink);
@@ -1512,6 +1547,26 @@ textarea::placeholder {
 }
 .player-entry-form .field > span {
   font-size: 14px;
+  line-height: 1.4;
+}
+.player-entry-form .field {
+  gap: 6px;
+}
+.player-entry-form .auth-fields {
+  gap: 14px;
+}
+.player-entry-form .auth-form .button {
+  min-height: 44px;
+  margin-top: 16px;
+  padding: 10px 16px;
+}
+.player-entry-form .auth-bottom {
+  margin-top: 10px;
+  min-height: 32px;
+  gap: 12px;
+}
+.player-entry-form .auth-feedback:empty {
+  display: none;
 }
 .player-entry-form .eyebrow {
   font-size: 12px;
@@ -1522,16 +1577,46 @@ textarea::placeholder {
   font-size: 14px;
 }
 .player-entry-return {
+  grid-column: 2;
   display: flex;
   justify-content: center;
   gap: 20px;
-  margin-top: 25px;
+  margin-top: 0;
   font-size: 14px;
   color: #626257;
+}
+.player-entry-return > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 .player-entry-return > a:hover {
   color: var(--ink);
   text-decoration: underline;
+}
+@media (max-width: 850px) {
+  .player-entry {
+    grid-template-columns: minmax(0, 1fr);
+    max-width: 460px;
+    width: calc(100% - 32px);
+    padding: 20px 0;
+    gap: 12px;
+  }
+  .player-entry-title,
+  .player-entry-return {
+    display: none;
+  }
+}
+@media (min-width: 851px) and (max-height: 780px) {
+  .player-entry {
+    padding-block: 16px;
+  }
+  .player-entry-return {
+    display: none;
+  }
+  .player-entry-form .auth-intro > p {
+    margin-bottom: 12px;
+  }
 }
 .club-app {
   --console-ink: #2c2c25;
@@ -2355,31 +2440,79 @@ textarea::placeholder {
     height: 65px;
   }
   .player-entry {
-    padding-top: 33px;
-    padding-bottom: 45px;
-  }
-  .player-entry-title > h1 {
-    font-size: 46px;
-    margin: 18px 0;
-  }
-  .player-entry-title > .editorial-label {
-    font-size: 12px;
-  }
-  .player-entry-title > p {
-    font-size: 16px;
+    padding: 12px 0;
   }
   .player-entry-form {
-    padding: 25px 23px;
+    padding: 18px;
   }
-  .player-entry-form h2 {
-    font-size: 21px;
+  .player-entry-form h1 {
+    font-size: 24px;
+    margin-bottom: 12px;
+  }
+  .player-entry-form .auth-intro > p {
+    display: none;
+  }
+  .player-entry-form .auth-tabs {
+    margin-bottom: 12px;
+  }
+  .player-entry-form .auth-fields {
+    gap: 10px;
+  }
+  .player-entry-form .field {
+    gap: 4px;
+  }
+  .player-entry-form .auth-form .button {
+    margin-top: 12px;
+  }
+  .player-entry-form .auth-form[data-mode="signup"] .auth-bottom {
+    display: none;
+  }
+  .player-entry-form .auth-privacy {
+    margin-top: 12px;
+  }
+  .player-entry-form .auth-privacy p {
+    font-size: 13px;
+    line-height: 1.4;
+  }
+  body:has(.player-entry) {
+    --header-height: 64px;
+  }
+}
+@media (max-width: 600px) and (max-height: 740px) {
+  body:has(.player-entry) {
+    --header-height: 56px;
+  }
+  .club-header.club-header-auth {
+    padding-block: 6px;
+  }
+  .player-entry {
+    padding: 8px 0;
+  }
+  .player-entry-form {
+    padding: 12px 16px;
+  }
+  .player-entry-form h1 {
+    font-size: 22px;
+    margin-bottom: 10px;
+  }
+  .player-entry-form .auth-tabs {
+    min-height: 40px;
+    margin-bottom: 10px;
+  }
+  .player-entry-form .auth-tabs button {
+    min-height: 40px;
+    padding-block: 8px;
+  }
+  .player-entry-form .auth-fields {
+    gap: 8px;
   }
   .player-entry-form input {
-    font-size: 16px;
+    min-height: 40px;
+    padding-block: 8px;
   }
-  .player-entry-return {
-    font-size: 14px;
-    gap: 20px;
+  .player-entry-form .auth-form .button,
+  .player-entry-form .auth-privacy {
+    margin-top: 10px;
   }
 }
 @media (max-width: 360px) {

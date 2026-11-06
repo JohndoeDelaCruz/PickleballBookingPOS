@@ -86,6 +86,17 @@ export function Header({
   }, [open]);
   if (pathname.startsWith("/demo") || pathname.startsWith("/staff") || pathname.startsWith("/admin") || (pathname === "/account" && staff))
     return null;
+  if (pathname === "/login") return (
+    <header className="club-header club-header-auth">
+      <Link href="/" aria-label="Rally Club home" className="club-wordmark">
+        rally<span className="wordmark-dot">.</span>
+        <small>PICKLEBALL<br />SOCIAL CLUB</small>
+      </Link>
+      <Link className="auth-header-link" href="/book">
+        Browse courts <ArrowUpRight size={16} aria-hidden="true" />
+      </Link>
+    </header>
+  );
   const links = [
     { href: "/#play", label: "The game" },
     { href: "/#club", label: "The club" },
