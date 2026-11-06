@@ -15,12 +15,10 @@
   }
 }
 .club-app {
-  --header-height: 68px;
+  --header-height: 0px;
 }
-.club-topbar {
-  position: sticky;
-  top: 0;
-  z-index: 20;
+.workspace-menu-button {
+  display: none;
 }
 .management-section-heading {
   margin-top: 26px;
@@ -282,7 +280,7 @@
 }
 .settings-readiness {
   position: sticky;
-  top: 92px;
+  top: 24px;
   padding: 24px;
 }
 .settings-readiness h2 {
@@ -549,17 +547,26 @@
 }
 @media (max-width: 650px) {
   .club-app {
-    --header-height: 62px;
+    --header-height: 56px;
   }
-  .club-topbar .mobile-menu {
+  .workspace-menu-button {
+    position: sticky;
+    top: 12px;
+    z-index: 25;
+    display: inline-flex;
+    align-self: flex-start;
     align-items: center;
     justify-content: center;
-  }
-  .club-topbar .workspace-crumb {
-    display: none;
-  }
-  .club-app .club-topbar .environment-pill {
-    display: flex;
+    gap: 8px;
+    min-height: 44px;
+    margin: 12px 18px 0;
+    padding: 0 12px;
+    border: 1px solid #dfe5d9;
+    border-radius: 6px;
+    background: #fcfdf9;
+    color: #53684d;
+    font-size: 14px;
+    font-weight: 600;
   }
   .workspace-content .console-page-heading {
     align-items: start;

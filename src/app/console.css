@@ -138,8 +138,7 @@
   margin-top: 12px;
   border-top: 1px solid #e2e7de;
 }
-.sidebar-profile > span:first-child,
-.topbar-avatar {
+.sidebar-profile > span:first-child {
   display: grid;
   place-items: center;
   width: 32px;
@@ -173,57 +172,6 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-}
-.club-topbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #fcfdf9;
-  border-bottom: 1px solid #e4e8df;
-  min-height: 68px;
-  padding: 0 35px;
-  font-size: 14px;
-}
-.club-topbar > div {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.club-topbar > div > span:first-child {
-  color: #596951;
-}
-.club-topbar strong {
-  font-weight: 500;
-}
-.topbar-avatar {
-  height: 29px;
-  width: 29px;
-  font-size: 12px;
-}
-.environment-pill {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px !important;
-  padding: 5px 10px;
-  border: 1px solid #dce3d6;
-  border-radius: 20px;
-  background: #f3f7ee;
-  color: #687e54 !important;
-}
-.environment-pill > span {
-  background: #8aa66b;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-}
-.environment-pill.demo-pill {
-  background: #f3eef8;
-  border-color: #e4dbec;
-  color: #6b5579 !important;
-}
-.environment-pill.demo-pill > span {
-  background: #ac96ba;
 }
 .presentation-banner {
   display: flex;
@@ -1573,7 +1521,6 @@
   border-top: 1px dashed #c9d2be;
   padding-top: 15px;
 }
-.club-app .mobile-menu,
 .club-app .mobile-close {
   display: none;
   border: 0;
@@ -1589,9 +1536,6 @@
 @media (min-width: 1500px) {
   .console-content {
     padding: 45px 50px;
-  }
-  .club-topbar {
-    padding: 0 50px;
   }
   .metric-card {
     padding: 24px;
@@ -1637,9 +1581,6 @@
   }
   .console-content {
     padding: 28px 23px;
-  }
-  .club-topbar {
-    padding: 0 23px;
   }
   .console-page-heading h1 {
     font-size: 24px;
@@ -1837,27 +1778,6 @@
   .club-main {
     margin-left: 0;
     width: 100%;
-  }
-  .club-app .mobile-menu {
-    display: flex;
-    margin-right: 6px;
-  }
-  .club-topbar {
-    min-height: 62px;
-    padding: 0 18px;
-  }
-  .club-topbar > div {
-    gap: 8px;
-  }
-  .club-topbar > div > span:first-child {
-    display: none;
-  }
-  .club-topbar > div > svg {
-    display: none;
-  }
-  .club-topbar .environment-pill {
-    font-size: 12px !important;
-    padding: 4px 8px;
   }
   .presentation-banner {
     padding: 11px 20px;

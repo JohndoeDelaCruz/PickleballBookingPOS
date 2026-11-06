@@ -17,7 +17,7 @@ npm run dev -- --port 3001
 - `/staff` — authenticated club management, cashier, inventory, payment reviews, transactions, and reports.
 - `/admin` — manager court calendar and walk-ins; `/admin/settings` — venue details, rates, schedule, GCash QR, and booking toggle.
 
-All management pages, including staff account settings, share the dashboard's sidebar, workspace top bar, cards, forms, and responsive layout. Sidebar links can open a dashboard section directly, for example `/staff?tab=inventory`. Venue preferences and booking schedules keep separate save controls.
+All management pages, including staff account settings, share the dashboard's sidebar, cards, forms, and responsive layout. A compact Menu button opens the sidebar on phones. Sidebar links can open a dashboard section directly, for example `/staff?tab=inventory`. Venue preferences and booking schedules keep separate save controls.
 
 Management routes share a persistent workspace layout and one skeleton system. Initial page loads and server-backed date/report refreshes show placeholders matched to overview, POS, reservations, inventory, transactions, reports, calendar, venue settings (including courts), or account settings. Local tab switches use data already loaded and remain immediate. Skeleton animation respects reduced-motion preferences; route URLs and access checks are unchanged.
 

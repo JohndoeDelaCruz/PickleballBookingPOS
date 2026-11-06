@@ -4,16 +4,9 @@ import { useMemo, useState, type ReactNode } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { ManagementSidebar } from "./management-sidebar";
 import { WorkspaceNavigation } from "./workspace-navigation";
-import { WorkspaceTopbar } from "./workspace-topbar";
+import { WorkspaceMenuButton } from "./workspace-menu-button";
 import { WorkspaceContext } from "./workspace-context";
-import { workspaceTab, workspaceTabs, type WorkspaceTab } from "@/lib/workspace";
-
-const pageNames: Record<string, string> = {
-  "/admin": "Court calendar",
-  "/admin/finance": "Booking finance",
-  "/admin/settings": "Venue settings",
-  "/account": "Account settings",
-};
+import { workspaceTab, type WorkspaceTab } from "@/lib/workspace";
 
 export function WorkspaceShell({ children, role, roleLoading = false, courtCount, totalCourtCount }: {
   children: ReactNode; role?: string; roleLoading?: boolean; courtCount?: number; totalCourtCount?: number;
@@ -39,7 +32,7 @@ export function WorkspaceShell({ children, role, roleLoading = false, courtCount
           activeTab={consolePage ? tab : undefined} onSelect={consolePage ? selectTab : undefined} pendingCount={pendingCount} />
       </ManagementSidebar>
       <div className="club-main">
-        <WorkspaceTopbar title={consolePage ? workspaceTabs.find((item) => item.id === tab)!.label : pageNames[path] ?? "Club management"} menuOpen={mobile} onMenuOpen={() => setMobile(true)} />
+        <WorkspaceMenuButton menuOpen={mobile} onMenuOpen={() => setMobile(true)} />
         <div className={consolePage ? "workspace-console-page" : "console-content workspace-content"}>{children}</div>
       </div>
     </main>

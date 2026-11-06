@@ -3,8 +3,8 @@
 import type { ReactNode } from "react";
 import { ManagementSidebar } from "./management-sidebar";
 import { WorkspaceNavigation } from "./workspace-navigation";
-import { WorkspaceTopbar } from "./workspace-topbar";
-import { workspaceTabs, type WorkspaceTab } from "@/lib/workspace";
+import { WorkspaceMenuButton } from "./workspace-menu-button";
+import type { WorkspaceTab } from "@/lib/workspace";
 
 export function ConsoleFrame({ children, demo, tab, mobile, setMobile, go, onReset }: {
   children: ReactNode; demo: boolean; tab: WorkspaceTab; mobile: boolean;
@@ -18,7 +18,7 @@ export function ConsoleFrame({ children, demo, tab, mobile, setMobile, go, onRes
         <WorkspaceNavigation activeTab={tab} onSelect={go} onNavigate={() => setMobile(false)} demo />
       </ManagementSidebar>
       <div className="club-main">
-        <WorkspaceTopbar title={workspaceTabs.find((item) => item.id === tab)!.label} demo menuOpen={mobile} onMenuOpen={() => setMobile(true)} />
+        <WorkspaceMenuButton menuOpen={mobile} onMenuOpen={() => setMobile(true)} />
         {children}
       </div>
     </main>
