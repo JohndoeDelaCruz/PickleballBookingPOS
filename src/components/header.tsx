@@ -148,8 +148,12 @@ export function Header({
             <LogOut size={16} />
           </button>
         )}
-        <Link className="club-reserve-link" href="/book">
+        <Link className="club-reserve-link club-reserve-desktop" href="/book">
           Reserve a court <ArrowUpRight size={16} />
+        </Link>
+        <Link className="club-reserve-link club-mobile-account-link" href={account}>
+          {staff ? "Workspace" : signedIn ? "My bookings" : "Login"}
+          <ArrowUpRight size={16} aria-hidden="true" />
         </Link>
         <button
           ref={menuButton}
@@ -177,7 +181,7 @@ export function Header({
           ))}
           <Link href={account} onClick={() => setOpen(false)}>
             <span>04</span>
-            {staff ? "Workspace" : signedIn ? "My bookings" : "Player login"}
+            {staff ? "Workspace" : signedIn ? "My bookings" : "Login"}
             <ArrowUpRight size={22} />
           </Link>
           <Link

@@ -203,6 +203,9 @@ textarea::placeholder {
   background: var(--accent);
   color: var(--ink);
 }
+.club-mobile-account-link {
+  display: none;
+}
 .club-signout {
   display: flex;
   align-items: center;
@@ -2002,6 +2005,12 @@ body:has(.player-entry) {
     padding: 12px 13px;
     gap: 8px;
     min-height: 44px;
+  }
+  .club-reserve-desktop {
+    display: none;
+  }
+  .club-mobile-account-link {
+    display: flex;
   }
   .club-menu-toggle {
     width: 44px;
