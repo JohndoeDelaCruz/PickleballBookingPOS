@@ -613,27 +613,6 @@ textarea::placeholder {
   height: 0.7em;
   flex: none;
 }
-.club-marquee-toggle {
-  display: none;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  margin-inline: 24px;
-  border: 1px solid #25252070;
-  border-radius: 50%;
-  background: transparent;
-  color: var(--ink);
-  transition: background 0.2s, color 0.2s;
-}
-.club-marquee-toggle:hover {
-  background: var(--ink);
-  color: var(--accent);
-}
-.club-marquee-toggle:focus-visible {
-  outline-color: var(--ink);
-}
 @keyframes club-marquee-loop {
   to {
     transform: translateX(-50%);
@@ -657,9 +636,6 @@ textarea::placeholder {
   .club-marquee[data-paused="true"] .club-marquee-track {
     animation-play-state: paused;
   }
-  .club-marquee-toggle {
-    display: flex;
-  }
 }
 @media (hover: hover) {
   .club-marquee-window:hover .club-marquee-track {
@@ -669,11 +645,6 @@ textarea::placeholder {
 @media (max-width: 600px) {
   .club-marquee {
     padding-block: 20px;
-  }
-  .club-marquee-toggle {
-    width: 44px;
-    height: 44px;
-    margin-inline: 12px;
   }
 }
 @media (prefers-reduced-motion: reduce) {

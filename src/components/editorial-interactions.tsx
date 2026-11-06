@@ -8,16 +8,12 @@ import {
   ArrowUpRight,
   Check,
   ChevronDown,
-  Pause,
-  Play,
 } from "lucide-react";
 import { addDays, localDate, money } from "@/lib/booking";
 import { Starburst } from "./starburst";
 
 export function ClubMarquee() {
   const section = useRef<HTMLElement>(null);
-  const trackId = useId();
-  const [paused, setPaused] = useState(false);
   const [inView, setInView] = useState(false);
 
   useEffect(() => {
@@ -35,10 +31,10 @@ export function ClubMarquee() {
       ref={section}
       className="club-marquee"
       aria-label="The Rally Club spirit"
-      data-paused={paused || !inView}
+      data-paused={!inView}
     >
       <div className="club-marquee-window">
-        <div className="club-marquee-track" id={trackId}>
+        <div className="club-marquee-track">
           {[0, 1].map((copy) => (
             <div
               className="club-marquee-group"
@@ -55,19 +51,6 @@ export function ClubMarquee() {
           ))}
         </div>
       </div>
-      <button
-        className="club-marquee-toggle"
-        type="button"
-        aria-label={paused ? "Resume marquee" : "Pause marquee"}
-        aria-controls={trackId}
-        onClick={() => setPaused((value) => !value)}
-      >
-        {paused ? (
-          <Play size={20} aria-hidden="true" />
-        ) : (
-          <Pause size={20} aria-hidden="true" />
-        )}
-      </button>
     </section>
   );
 }
@@ -307,7 +290,6 @@ export function CourtsideJournal() {
   const step = useRef(0);
   const pointerDown = useRef(false);
   const entered = useRef(false);
-  const [paused, setPaused] = useState(false);
   const [focused, setFocused] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [inView, setInView] = useState(false);
@@ -379,7 +361,7 @@ export function CourtsideJournal() {
       entered.current = false;
       return;
     }
-    if (paused || focused || dragging || reducedMotion) return;
+    if (focused || dragging || reducedMotion) return;
     // Begin as the photos approach the screen, rather than waiting a full
     // interval after they appear. Keep the usual interval after interactions.
     if (!entered.current) {
@@ -390,7 +372,7 @@ export function CourtsideJournal() {
       if (document.visibilityState === "visible") move(1);
     }, 2500);
     return () => clearInterval(timer);
-  }, [inView, paused, focused, dragging, reducedMotion]);
+  }, [inView, focused, dragging, reducedMotion]);
 
   return (
     <section className="courtside-journal" id="journal" ref={section}
@@ -407,11 +389,6 @@ export function CourtsideJournal() {
           </h2>
         </div>
         <div className="journal-controls">
-          {!reducedMotion && <button type="button"
-            aria-label={paused ? "Play photo carousel" : "Pause photo carousel"}
-            aria-controls={`${id}-track`} onClick={() => setPaused((value) => !value)}>
-            {paused ? <Play size={17} /> : <Pause size={17} />}
-          </button>}
           <button
             type="button"
             aria-label="Previous club image"
