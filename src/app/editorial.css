@@ -609,9 +609,9 @@ textarea::placeholder {
   white-space: nowrap;
 }
 .club-marquee-star {
-  font-family: var(--font-body), sans-serif;
-  font-size: 0.7em;
-  font-weight: 400;
+  width: 0.7em;
+  height: 0.7em;
+  flex: none;
 }
 .club-marquee-toggle {
   display: none;
@@ -1237,6 +1237,11 @@ textarea::placeholder {
   padding-top: 5px;
   margin-left: 20px;
 }
+.footer-masthead > span > svg {
+  display: block;
+  width: 1em;
+  height: 1em;
+}
 .footer-masthead > i {
   position: absolute;
   right: -30%;
@@ -1269,6 +1274,11 @@ textarea::placeholder {
 .club-footer-bottom > div {
   display: flex;
   gap: 20px;
+}
+.club-footer-bottom > div > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 .club-footer-bottom > div > a:hover {
   color: white;

@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUp, ArrowUpRight } from "lucide-react";
 
 export function Footer({ staff = false }: { staff?: boolean }) {
   const path = usePathname();
@@ -33,7 +33,7 @@ export function Footer({ staff = false }: { staff?: boolean }) {
         </span>
       </div>
       <Link href="/" className="footer-masthead" aria-label="Rally Club home">
-        rally<span>↗</span>
+        rally<span><ArrowUpRight aria-hidden="true" focusable="false" strokeWidth={1.5} /></span>
         <i>
           PLAY IS A<br />
           GOOD IDEA.
@@ -44,7 +44,7 @@ export function Footer({ staff = false }: { staff?: boolean }) {
         <div>
           <Link href="/privacy">Privacy</Link>
           <Link href="/staff">Staff access</Link>
-          <a href="#main">Back to top ↑</a>
+          <a href="#main">Back to top <ArrowUp size={14} aria-hidden="true" focusable="false" /></a>
         </div>
       </div>
     </footer>

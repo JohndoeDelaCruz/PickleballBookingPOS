@@ -12,6 +12,7 @@ import {
   Play,
 } from "lucide-react";
 import { addDays, localDate, money } from "@/lib/booking";
+import { Starburst } from "./starburst";
 
 export function ClubMarquee() {
   const section = useRef<HTMLElement>(null);
@@ -47,9 +48,7 @@ export function ClubMarquee() {
               {["Good games.", "Great company.", "See you on court."].map((line) => (
                 <span className="club-marquee-phrase" key={line}>
                   {line}
-                  <span className="club-marquee-star" aria-hidden="true">
-                    ✳
-                  </span>
+                  <Starburst className="club-marquee-star" />
                 </span>
               ))}
             </div>
