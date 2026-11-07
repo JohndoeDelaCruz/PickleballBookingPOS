@@ -17,16 +17,18 @@ export const getCourtInventory = cache(async () => {
   } catch { return { courts: defaultCourts, ready: false, loaded: false }; }
 });
 
+export const getVenueSettings = cache(async () => {
+  try {
+    const db = await createClient();
+    const { data, error } = await db.from("venue_settings").select("*").eq("id", true).single();
+    return error ? null : data;
+  } catch {
+    return null;
+  }
+});
+
 export const getVenue = cache(async (): Promise<VenueResult> => {
-  // Public venue details and court inventory are independent reads.
-  const settings = (async () => {
-    try {
-      const db = await createClient();
-      const { data, error } = await db.from("venue_settings").select("*").eq("id", true).single();
-      return error ? null : data;
-    } catch { return null; }
-  })();
-  const [inventory, data] = await Promise.all([getCourtInventory(), settings]);
+  const [inventory, data] = await Promise.all([getCourtInventory(), getVenueSettings()]);
   const defaults = { ...defaultVenue, courts: inventory.courts };
   if (!data)
     return { venue: defaults, ready: false, openPlayReady: false, courtsReady: inventory.ready };

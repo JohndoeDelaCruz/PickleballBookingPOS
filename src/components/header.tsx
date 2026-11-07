@@ -10,9 +10,11 @@ import { isLandingReloadPending, LANDING_START_READY } from "@/lib/landing-start
 export function Header({
   signedIn,
   staff,
+  venueName,
 }: {
   signedIn: boolean;
   staff: boolean;
+  venueName: string;
 }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
@@ -86,12 +88,15 @@ export function Header({
   }, [open]);
   if (pathname.startsWith("/demo") || pathname.startsWith("/staff") || pathname.startsWith("/admin") || (pathname === "/account" && staff))
     return null;
+  const wordmark = (
+    <Link href="/" aria-label={`${venueName} home`} className="club-wordmark" title={venueName}>
+      <span className="club-wordmark-name">{venueName}<span className="wordmark-dot" aria-hidden="true">.</span></span>
+      <small>PICKLEBALL<br />SOCIAL CLUB</small>
+    </Link>
+  );
   if (pathname === "/login") return (
     <header className="club-header club-header-auth">
-      <Link href="/" aria-label="Rally Club home" className="club-wordmark">
-        rally<span className="wordmark-dot">.</span>
-        <small>PICKLEBALL<br />SOCIAL CLUB</small>
-      </Link>
+      {wordmark}
       <Link className="auth-header-link" href="/book">
         Browse courts <ArrowUpRight size={16} aria-hidden="true" />
       </Link>
@@ -119,14 +124,7 @@ export function Header({
           : tone.overDark ? "transparent-light" : "transparent-dark"
       }
     >
-      <Link href="/" aria-label="Rally Club home" className="club-wordmark">
-        rally<span className="wordmark-dot">.</span>
-        <small>
-          PICKLEBALL
-          <br />
-          SOCIAL CLUB
-        </small>
-      </Link>
+      {wordmark}
       <nav className="club-desktop-links" aria-label="Main navigation">
         {links.map((l) => (
           <Link key={l.href} href={l.href}>

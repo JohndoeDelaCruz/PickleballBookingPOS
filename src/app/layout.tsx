@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { Archivo_Black, Manrope, DM_Serif_Display } from "next/font/google";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
-import { getSession } from "@/lib/data";
+import { getSession, getVenueSettings } from "@/lib/data";
+import { defaultVenue } from "@/lib/types";
 import "lenis/dist/lenis.css";
 import "./globals.css";
 import "./console.css";
@@ -39,7 +40,8 @@ export const metadata: Metadata = {
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const { user, staff } = await getSession();
+  const [{ user, staff }, settings] = await Promise.all([getSession(), getVenueSettings()]);
+  const venueName = settings?.name?.trim() || defaultVenue.name;
   return (
     <html lang="en" data-scroll-behavior="smooth">
       <body
@@ -48,9 +50,9 @@ export default async function RootLayout({
         <a href="#main" className="skip-link">
           Skip to content
         </a>
-        <Header signedIn={Boolean(user)} staff={staff} />
+        <Header signedIn={Boolean(user)} staff={staff} venueName={venueName} />
         {children}
-        <Footer staff={staff} />
+        <Footer staff={staff} venueName={venueName} />
       </body>
     </html>
   );

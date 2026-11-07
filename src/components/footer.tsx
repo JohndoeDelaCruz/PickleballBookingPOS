@@ -3,7 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ArrowUp, ArrowUpRight } from "lucide-react";
 
-export function Footer({ staff = false }: { staff?: boolean }) {
+export function Footer({ staff = false, venueName }: { staff?: boolean; venueName: string }) {
   const path = usePathname();
   if (path === "/login" || path.startsWith("/demo") || path.startsWith("/staff") || path.startsWith("/admin") || (path === "/account" && staff)) return null;
   return (
@@ -32,15 +32,16 @@ export function Footer({ staff = false }: { staff?: boolean }) {
           POSSIBILITIES.
         </span>
       </div>
-      <Link href="/" className="footer-masthead" aria-label="Rally Club home">
-        rally<span><ArrowUpRight aria-hidden="true" focusable="false" strokeWidth={1.5} /></span>
+      <Link href="/" className="footer-masthead" aria-label={`${venueName} home`}>
+        <span className="footer-masthead-name">{venueName}</span>
+        <span className="footer-masthead-arrow"><ArrowUpRight aria-hidden="true" focusable="false" strokeWidth={1.5} /></span>
         <i>
           PLAY IS A<br />
           GOOD IDEA.
         </i>
       </Link>
       <div className="club-footer-bottom">
-        <span>© {new Date().getFullYear()} RALLY CLUB</span>
+        <span>© {new Date().getFullYear()} {venueName}</span>
         <div>
           <Link href="/privacy">Privacy</Link>
           <Link href="/staff">Staff access</Link>
