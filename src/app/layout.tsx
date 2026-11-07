@@ -28,20 +28,27 @@ const serif = DM_Serif_Display({
   variable: "--font-serif",
   display: "swap",
 });
-export const metadata: Metadata = {
-  title: {
-    default: "Rally Club — Good game. Good company.",
-    template: "%s | Rally Club",
-  },
-  description:
-    "Less screen time. More court time. Find your next pickleball game, reserve a court, and make a little time for good company.",
-  icons: { icon: "/icon.svg" },
-};
+async function getVenueName() {
+  const settings = await getVenueSettings();
+  return settings?.name?.trim() || defaultVenue.name;
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const venueName = await getVenueName();
+  return {
+    title: {
+      default: `${venueName} — Good game. Good company.`,
+      template: `%s | ${venueName}`,
+    },
+    description:
+      "Less screen time. More court time. Find your next pickleball game, reserve a court, and make a little time for good company.",
+    icons: { icon: "/icon.svg" },
+  };
+}
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const [{ user, staff }, settings] = await Promise.all([getSession(), getVenueSettings()]);
-  const venueName = settings?.name?.trim() || defaultVenue.name;
+  const [{ user, staff }, venueName] = await Promise.all([getSession(), getVenueName()]);
   return (
     <html lang="en" data-scroll-behavior="smooth">
       <body
