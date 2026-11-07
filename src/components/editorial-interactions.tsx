@@ -112,7 +112,6 @@ export function PlaySelector({
   return (
     <section className="play-selector" id="play">
       <div className="play-selector-heading" data-slide="left">
-        <span className="editorial-label">01 / MAKE IT YOUR GAME</span>
         <h2>
           There’s more than
           <br />
@@ -182,7 +181,7 @@ export function PlaySelector({
               <>
                 A little friendly
                 <br />
-                <em>competition.</em>
+                competition.
               </>
             ) : (
               <>
@@ -383,9 +382,8 @@ export function CourtsideJournal() {
       }}>
       <div className="journal-heading" data-slide="left">
         <div>
-          <span className="editorial-label">03 / THE CLUB, IN FRAME</span>
           <h2 id={`${id}-heading`}>
-            Life on the <em>sidelines.</em>
+            Life on the sidelines.
           </h2>
         </div>
         <div className="journal-controls">

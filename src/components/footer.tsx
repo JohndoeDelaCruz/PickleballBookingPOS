@@ -11,7 +11,7 @@ export function Footer({ staff = false }: { staff?: boolean }) {
       <div className="club-footer-upper">
         <p>
           A little less online.
-          <br />A little more <em>on court.</em>
+          <br />A little more on court.
         </p>
         <div>
           <Link href="/book">

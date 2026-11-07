@@ -319,13 +319,6 @@ textarea::placeholder {
 .hero-deck {
   max-width: 400px;
 }
-.hero-deck > p {
-  font-size: 16px;
-  line-height: 1.8;
-  margin: 0 0 24px;
-  color: #fffdf5;
-  text-shadow: 0 1px 12px #0005;
-}
 .hero-actions {
   display: flex;
   align-items: center;
@@ -402,10 +395,6 @@ textarea::placeholder {
   }
   .hero-deck {
     max-width: none;
-  }
-  .hero-deck > p {
-    line-height: 1.65;
-    margin-bottom: 18px;
   }
   .hero-actions {
     gap: 10px 14px;
@@ -533,12 +522,6 @@ textarea::placeholder {
   line-height: 1.4;
   margin: 0;
 }
-.editorial-intro em {
-  font:
-    italic 400 1.2em/1 var(--font-serif),
-    Georgia,
-    serif;
-}
 .editorial-intro > a {
   border: 1px solid var(--line);
   width: 65px;
@@ -644,7 +627,7 @@ textarea::placeholder {
     400 clamp(35px, 3.6vw, 57px)/1.13 var(--font-display),
     sans-serif;
   letter-spacing: -2.4px;
-  margin: 30px 0 23px;
+  margin: 0 0 23px;
 }
 .play-selector-heading h2 > em {
   font:
@@ -806,25 +789,17 @@ textarea::placeholder {
 .manifesto-text {
   padding: 65px 10% 58px 6.8%;
 }
-.manifesto-text > .editorial-label {
-  font-size: 12px;
-  color: #c0c0b3;
-}
 .manifesto-text > h2 {
   font:
     400 clamp(38px, 4vw, 65px)/1.12 var(--font-body),
     sans-serif;
   letter-spacing: -2.3px;
-  margin: 44px 0 45px;
+  margin: 0 0 45px;
 }
 .manifesto-word {
   display: block;
 }
-.manifesto-last em {
-  font:
-    italic 400 1.35em/1.1 var(--font-serif),
-    Georgia,
-    serif;
+.manifesto-last {
   color: var(--accent);
 }
 .manifesto-copy {
@@ -919,13 +894,7 @@ textarea::placeholder {
     400 clamp(32px, 3.4vw, 52px)/1.2 var(--font-body),
     sans-serif;
   letter-spacing: -1.8px;
-  margin: 20px 0 0;
-}
-.journal-heading h2 em {
-  font:
-    italic 400 1.3em/1 var(--font-serif),
-    Georgia,
-    serif;
+  margin: 0;
 }
 .journal-controls {
   display: flex;
@@ -1059,13 +1028,6 @@ textarea::placeholder {
   letter-spacing: -6px;
   margin: 0;
 }
-.finish-call h2 em {
-  font:
-    italic 400 1.16em/0.9 var(--font-serif),
-    Georgia,
-    serif;
-  letter-spacing: -5px;
-}
 .finish-arrow {
   height: 180px;
   width: 180px;
@@ -1152,12 +1114,6 @@ textarea::placeholder {
   letter-spacing: -0.5px;
   line-height: 1.4;
   margin: 0;
-}
-.club-footer-upper > p > em {
-  font:
-    italic 400 1.25em/1 var(--font-serif),
-    Georgia,
-    serif;
 }
 .club-footer-upper > div {
   display: flex;
@@ -1832,9 +1788,6 @@ body:has(.player-entry) {
     align-items: end;
     gap: 15px 25px;
   }
-  .play-selector-heading > .editorial-label {
-    grid-column: 1/-1;
-  }
   .play-selector-heading h2 {
     font-size: 42px;
     margin: 10px 0;
@@ -2068,14 +2021,9 @@ body:has(.player-entry) {
   .play-selector-heading {
     display: block;
   }
-  .play-selector-heading > .editorial-label {
-    font-size: 12px;
-    letter-spacing: 1.25px;
-  }
   .play-selector-heading h2 {
     font-size: 34px;
     letter-spacing: -1.7px;
-    margin-top: 22px;
     line-height: 1.15;
   }
   .play-selector-heading > p {
@@ -2150,14 +2098,11 @@ body:has(.player-entry) {
   .manifesto-text {
     padding: 40px 25px;
   }
-  .manifesto-text > .editorial-label {
-    font-size: 12px;
-  }
   .manifesto-text > h2 {
     font-size: 44px;
     letter-spacing: -1.7px;
     line-height: 1.13;
-    margin: 34px 0;
+    margin-bottom: 34px;
   }
   .manifesto-copy {
     grid-template-columns: 1fr;
@@ -2207,16 +2152,11 @@ body:has(.player-entry) {
     margin-bottom: 25px;
     flex-wrap: wrap;
   }
-  .journal-heading .editorial-label {
-    font-size: 12px;
-    letter-spacing: 1px;
-  }
   .journal-heading h2 {
     font-size: 26px;
     line-height: 1.25;
     letter-spacing: -1px;
     max-width: 210px;
-    margin-top: 17px;
   }
   .journal-controls {
     gap: 6px;
@@ -2279,11 +2219,8 @@ body:has(.player-entry) {
     gap: 15px;
   }
   .finish-call h2 {
-    font-size: 59px;
-    letter-spacing: -3.8px;
-  }
-  .finish-call h2 em {
-    letter-spacing: -2.5px;
+    font-size: clamp(36px, 12vw, 59px);
+    letter-spacing: -0.064em;
   }
   .finish-arrow {
     width: 76px;
@@ -2530,9 +2467,6 @@ body:has(.player-entry) {
   }
   .manifesto-copy > a {
     grid-column: auto;
-  }
-  .finish-call h2 {
-    font-size: 53px;
   }
   .finish-arrow {
     width: 66px;

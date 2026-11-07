@@ -39,10 +39,6 @@ export default async function Home() {
               </span>
             </h1>
             <div className="hero-deck">
-              <p>
-                Less screen time. More court time.
-                <br />A whole lot of good company.
-              </p>
               <div className="hero-actions">
                 <a href="#reserve" className="hero-reserve-link">
                   Reserve a court <ArrowUpRight size={20} />
@@ -67,7 +63,7 @@ export default async function Home() {
         <p>
           A few good rallies can
           <br />
-          change your <em>whole day.</em>
+          change your whole day.
         </p>
         <Link href="/book" aria-label="Explore court reservations">
           <ArrowUpRight size={30} />
@@ -82,9 +78,6 @@ export default async function Home() {
       />
       <section className="club-manifesto" id="club">
         <div className="manifesto-text">
-          <span className="editorial-label" data-slide="left">
-            02 / MORE THAN THE SCORE
-          </span>
           <h2 data-slide-group="left">
             {["For the game.", "For the people.", "For the", "good of it."].map(
               (line, i) => (
@@ -92,7 +85,7 @@ export default async function Home() {
                   className={`manifesto-word ${i === 3 ? "manifesto-last" : ""}`}
                   key={line}
                 >
-                  {i === 3 ? <em>{line}</em> : line}
+                  {line}
                 </span>
               ),
             )}
@@ -138,7 +131,7 @@ export default async function Home() {
           <h2 data-slide="left">
             See you
             <br />
-            <em>out there.</em>
+            out there.
           </h2>
           <Link
             href="/book"
