@@ -37,7 +37,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const venueName = await getVenueName();
   return {
     title: {
-      default: `${venueName} — Good game. Good company.`,
+      default: `${venueName}`,
       template: `%s | ${venueName}`,
     },
     description:
