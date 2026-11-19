@@ -36,7 +36,7 @@ export type VenueSettings = {
 export const defaultVenue: VenueSettings = {
   id: true,
   name: "Rally Club",
-  tagline: "Less screen time. More court time.",
+  tagline: "Good games. Great company. Higher together.",
   address: "",
   city: "",
   phone: "",
@@ -84,6 +84,7 @@ export type Booking = {
   start_hour: number;
   duration: number;
   total_amount: number;
+  membership_discount_amount?: number;
   payment_option: PaymentOption;
   initial_payment_amount: number;
   paid_amount: number;
@@ -104,6 +105,7 @@ export type Booking = {
   status: BookingStatus;
   hold_expires_at: string | null;
   payment_reference: string | null;
+  payment_rejected_at?: string | null;
   customer_name: string;
   customer_phone: string;
   notes: string | null;
@@ -113,6 +115,12 @@ export type Availability = Pick<
   Booking,
   "court_id" | "start_hour" | "duration" | "status"
 >;
+export type CalendarBooking = Pick<Booking,
+  "id" | "reference" | "customer_name" | "start_hour" | "duration" | "court_id"
+  | "booking_type" | "participant_count" | "status" | "total_amount" | "paid_amount"
+  | "initial_payment_amount" | "payment_option" | "payment_reference" | "payment_rejected_at"
+  | "equipment_rental" | "equipment_quantity" | "equipment_amount" | "equipment_ball_count"
+> & Partial<Pick<Booking, "customer_phone">>;
 export type VenueResult = {
   courtsReady?: boolean;
   venue: VenueSettings;
@@ -138,3 +146,9 @@ export const statusLabels: Record<BookingStatus, string> = {
   expired: "Expired",
   blocked: "Court blocked",
 };
+
+export function bookingStatusLabel(booking: Pick<Booking, "status" | "payment_rejected_at">) {
+  return booking.status === "cancelled" && booking.payment_rejected_at
+    ? "Payment reference rejected"
+    : statusLabels[booking.status];
+}

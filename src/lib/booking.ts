@@ -168,9 +168,16 @@ export function hasOpenPlay(venue: VenueSettings, date: string) {
     );
   return venue.open_play_enabled && isWeekend(date);
 }
-export function openPlayCapacityLabel(capacity: number | null) {
-  if (capacity === null) return "No player limit across active courts";
-  return `${capacity} ${capacity === 1 ? "player" : "players"} total across active courts`;
+export function openPlayCapacityLabel(capacity: number | null, courtCount = 2) {
+  if (courtCount !== 2)
+    return capacity === null
+      ? "No player limit for the session"
+      : `${capacity} ${capacity === 1 ? "player" : "players"} total per session`;
+  if (capacity === null) return "No player limit across both courts";
+  const total = `${capacity} ${capacity === 1 ? "player" : "players"} total`;
+  if (capacity % 2 !== 0) return `${total} across both courts`;
+  const perCourt = capacity / 2;
+  return `${perCourt} ${perCourt === 1 ? "player" : "players"} per court · ${total}`;
 }
 export function courtScheduleLabel(
   venue: VenueSettings,
@@ -242,6 +249,7 @@ export const bookingSchema = z.object({
   booking_date: z.iso.date(),
   start_hour: z.coerce.number().int().min(0).max(23),
   duration: z.coerce.number().int().min(1).max(4),
+  expected_total_cents: z.number().int().min(1).max(9_999_999_999).optional(),
   customer_name: z
     .string()
     .trim()
@@ -263,6 +271,7 @@ export const openPlaySchema = bookingSchema
     equipment_rental: true,
     equipment_quantity: true,
     payment_option: true,
+    expected_total_cents: true,
   })
   .extend({
     participant_count: z.coerce.number().int().min(1).max(20),

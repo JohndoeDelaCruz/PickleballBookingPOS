@@ -6,30 +6,33 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   ArrowLeft,
   LogOut,
+  RefreshCw,
   PanelLeftClose,
   PanelLeftOpen,
-  RefreshCw,
   Settings2,
   X,
 } from "lucide-react";
 import { Brand } from "./brand";
 import { createClient } from "@/lib/supabase/client";
+import { accountRoleLabels } from "@/lib/account-roles";
+import type { WorkspaceRole } from "@/lib/session-access";
 
 const preferenceKey = "rally:sidebar-collapsed";
+const mobileQuery = "(max-width: 650px)";
 
 export function ManagementSidebar({
   children,
   mobileOpen,
   onMobileClose,
-  demo = false,
   role,
+  demo = false,
   onReset,
 }: {
   children: ReactNode;
   mobileOpen: boolean;
   onMobileClose: () => void;
+  role?: WorkspaceRole;
   demo?: boolean;
-  role?: string;
   onReset?: () => void;
 }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -50,8 +53,18 @@ export function ManagementSidebar({
   }, []);
 
   useEffect(() => {
+    const mobile = window.matchMedia(mobileQuery);
+    const updateInteractivity = () => {
+      if (sidebar.current) sidebar.current.inert = mobile.matches && !mobileOpen;
+    };
+    updateInteractivity();
+    mobile.addEventListener("change", updateInteractivity);
+    return () => mobile.removeEventListener("change", updateInteractivity);
+  }, [mobileOpen]);
+
+  useEffect(() => {
     if (!mobileOpen) return;
-    const mobile = window.matchMedia("(max-width: 650px)");
+    const mobile = window.matchMedia(mobileQuery);
     if (!mobile.matches) {
       closeMobile.current();
       return;
@@ -59,7 +72,7 @@ export function ManagementSidebar({
     const previous = document.activeElement as HTMLElement | null;
     const overflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    closeButton.current?.focus();
+    closeButton.current?.focus({ preventScroll: true });
     const closeOnDesktop = () => {
       if (!mobile.matches) closeMobile.current();
     };
@@ -106,21 +119,18 @@ export function ManagementSidebar({
 
   return (
     <>
-      {mobileOpen && (
-        <button
-          className="management-backdrop"
-          aria-label="Close management menu"
-          tabIndex={-1}
-          onClick={onMobileClose}
-        />
-      )}
+      <div
+        className={`management-backdrop${mobileOpen ? " sidebar-open" : ""}`}
+        aria-hidden="true"
+        onClick={onMobileClose}
+      />
       <aside
         ref={sidebar}
         className={`club-sidebar management-sidebar${collapsed ? " is-collapsed" : ""}${mobileOpen ? " sidebar-open" : ""}`}
         aria-label="Management sidebar"
       >
         <div className="management-sidebar-heading">
-          <Brand />
+          <Brand compact />
           <button
             type="button"
             className="management-collapse-toggle"
@@ -156,8 +166,7 @@ export function ManagementSidebar({
             <ArrowLeft size={18} aria-hidden="true" />
             <span className="management-label">Back to website</span>
           </Link>
-          {!demo && (
-            <button
+          {!demo && <button
               className="sidebar-utility"
               title="Sign out"
               onClick={async () => {
@@ -168,15 +177,14 @@ export function ManagementSidebar({
             >
               <LogOut size={17} aria-hidden="true" />
               <span className="management-label">Sign out</span>
-            </button>
-          )}
+          </button>}
           {demo ? <div className="sidebar-profile">
             <span aria-hidden="true">RC</span>
             <div className="management-label"><strong>Demo workspace</strong><small>Sample data</small></div>
           </div> : <Link href="/account" className="sidebar-profile" title="Account settings" aria-current={path === "/account" ? "page" : undefined} onNavigate={onMobileClose}>
             <span aria-hidden="true">RC</span>
             <div className="management-label">
-              <strong>{role ?? "Staff"}</strong>
+              <strong>{role ? accountRoleLabels[role] : "Staff"}</strong>
               <small>Account settings</small>
             </div>
             <Settings2 size={16} className="management-label sidebar-account-icon" aria-hidden="true" />

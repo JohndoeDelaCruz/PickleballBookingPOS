@@ -15,9 +15,10 @@ export default async function FinancePage({
 }: {
   searchParams: Promise<{ month?: string; date?: string; page?: string }>;
 }) {
-  const { user, staff } = await getSession();
+  const { user, staff, role } = await getSession();
   if (!user) redirect("/login?next=/admin/finance");
   if (!staff) redirect("/my-bookings");
+  if (role === "cashier") redirect("/staff");
   const params = await searchParams;
   const period = reportPeriod(params.month, params.date);
   const page = Math.max(1, Math.min(100000, Number(params.page) || 1)) | 0;
@@ -36,6 +37,8 @@ async function FinanceData({ period, page }: { period: ReturnType<typeof reportP
       monthRequest.then(() => readFinanceBookings(period.date, page)),
       getCourtInventory(),
     ]);
+    if (!days.some((day) => day.report_date === period.date))
+      throw new Error("The selected day is missing from the finance report.");
     return (
       <FinanceDashboard
         courts={inventory.courts}

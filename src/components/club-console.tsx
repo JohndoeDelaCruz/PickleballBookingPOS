@@ -24,17 +24,19 @@ import {
   CheckCircle2,
   AlertTriangle,
 } from "lucide-react";
-import { ConsoleFrame } from "./console-frame";
 import { WorkspaceSkeleton } from "./workspace-skeleton";
-import { WorkspacePageHeading } from "./workspace-page-heading";
-import { useWorkspace } from "./workspace-context";
-import { workspaceTab, workspaceTabs, type WorkspaceTab as Tab } from "@/lib/workspace";
-import { activeCourts, calendarCourts, courtName, defaultCourts } from "@/lib/courts";
+import { ConsoleFrame } from "./console-frame";
 import { demoData } from "@/lib/demo";
 import { applyDemoCommand } from "@/lib/demo-command";
+import { WorkspacePageHeading } from "./workspace-page-heading";
+import { useWorkspace } from "./workspace-context";
+import { reservationsForDateHref, workspaceTab, workspaceTabs, type WorkspaceTab as Tab } from "@/lib/workspace";
+import { activeCourts, calendarCourts, courtName, defaultCourts } from "@/lib/courts";
+import { formatHour } from "@/lib/booking";
 import {
   cartTotal,
   centavos,
+  collectionsCsv,
   dayKey,
   peso,
   reportFor,
@@ -43,18 +45,17 @@ import {
   type Sale,
   type PosBooking,
 } from "@/lib/pos";
+import { toCsv } from "@/lib/finance";
 import { posCommand, type PosCommand } from "@/app/(workspace)/staff/actions";
-const empty: PosData = {
-  products: [],
-  sales: [],
-  payments: [],
-  refunds: [],
-  shifts: [],
-  movements: [],
-  bookings: [],
-  role: "cashier",
-  ready: false,
-};
+import { useAnimatedModal } from "./use-animated-modal";
+import { TablePagination, useTablePage } from "./table-pagination";
+import { OnDutyControl, RegisterControl, RegisterShiftDialog } from "./register-day";
+import { OverviewMetricValue } from "./overview-metric-value";
+import { ProductPhoto, ProductPhotoField } from "./product-photo";
+import { prepareProductPhoto, previewProductPhoto, productPhotoUrl } from "@/lib/product-photo";
+import type { RegisterDay as RegisterData } from "@/lib/register";
+import { BalancePaymentModal } from "./balance-payment-modal";
+import { StaffCancelBookingModal } from "./staff-cancel-booking-modal";
 type Modal =
   | "checkout"
   | "product"
@@ -64,9 +65,9 @@ type Modal =
   | "refund"
   | "balance"
   | "verify"
-  | "receipt"
   | "newbooking"
-  | null;
+  | "reject-payment"
+  | "receipt";
 const dateLabel = (value: string) =>
   new Intl.DateTimeFormat("en-PH", {
     timeZone: "Asia/Manila",
@@ -88,67 +89,81 @@ const hourLabel = (n: number) => `${n % 12 || 12}${n < 12 ? "am" : "pm"}`;
 export function ClubConsole({
   demo = false,
   initial,
-  initialDate,
+  initialDate = dayKey(),
   initialTab = "overview",
+  register = null,
+  followToday = false,
+  operator = "Demo operator",
+  canAssign = false,
 }: {
   demo?: boolean;
   initial?: PosData;
   initialDate?: string;
   initialTab?: Tab;
+  register?: RegisterData | null;
+  followToday?: boolean;
+  operator?: string;
+  canAssign?: boolean;
 }) {
   const router = useRouter();
   const params = useSearchParams();
   const workspace = useWorkspace();
-  const [clientData, setData] = useState<PosData>(() =>
-    demo ? demoData() : (initial ?? empty),
-  );
-  const data = demo ? clientData : (initial ?? empty);
-  const [demoTab, setTab] = useState<Tab>(initialTab);
-  const tab = demo ? demoTab : workspaceTab(params.get("tab") ?? initialTab);
+  const [sample, setData] = useState(() => initial ?? demoData());
+  const [mobile, setMobile] = useState(false);
+  const data = demo ? sample : initial ?? sample;
+  const tab = workspaceTab(params.get("tab") ?? initialTab);
+  const reservationQuery = tab === "bookings" ? params.get("q")?.slice(0, 100) ?? "" : "";
   const [isNavigating, startNavigation] = useTransition();
-  const [selectedDate, setDate] = useState(initialDate ?? dayKey());
-  const date = demo || isNavigating ? selectedDate : (initialDate ?? selectedDate);
-  const [search, setSearch] = useState("");
+  const [selectedDate, setDate] = useState(initialDate);
+  const date = demo || isNavigating ? selectedDate : initialDate;
+  const [search, setSearch] = useState(reservationQuery);
   const [category, setCategory] = useState("All items");
   const [cart, setCart] = useState<Record<string, number>>({});
-  const [modal, setModal] = useState<Modal>(null);
+  const [modal, setModal, modalClosing] = useAnimatedModal<Modal>();
+  const [reservationAction, setReservationAction, reservationActionClosing] =
+    useAnimatedModal<{ kind: "cancel" | "balance"; booking: PosBooking }>();
   const [selected, setSelected] = useState<Product | Sale | PosBooking | null>(
     null,
   );
   const [receipt, setReceipt] = useState<Sale | null>(null);
   const [busy, setBusy] = useState(false);
+  const [productPhoto, setProductPhoto] = useState<string | null>();
+  const [preparingPhoto, setPreparingPhoto] = useState(false);
   const [error, setError] = useState("");
   const [toast, setToast] = useState("");
   const [method, setMethod] = useState<"cash" | "gcash">("cash");
   const [cash, setCash] = useState("");
-  const [mobile, setMobile] = useState(false);
   const checkoutKey = useRef<string | null>(null);
   useEffect(() => {
-    if (!demo && initialDate) setDate(initialDate);
-  }, [demo, initialDate]);
+    setDate(initialDate);
+  }, [initialDate]);
   useEffect(() => {
-    setSearch("");
+    setSearch(reservationQuery);
     setCategory("All items");
-  }, [tab]);
+  }, [tab, reservationQuery]);
   useEffect(() => {
     if (!toast) return;
     const timer = setTimeout(() => setToast(""), 5000);
     return () => clearTimeout(timer);
   }, [toast]);
   useEffect(() => {
-    if (!modal) return;
+    if (!modal || modal === "open" || modal === "close") return;
     const previous = document.activeElement as HTMLElement | null;
     const dialog = document.querySelector<HTMLElement>(".console-modal");
     const controls = () =>
       Array.from(
         dialog?.querySelectorAll<HTMLElement>(
-          "button:not(:disabled),input:not(:disabled),select:not(:disabled),a[href]",
+          "button:not(:disabled),input:not(:disabled),select:not(:disabled),textarea:not(:disabled),a[href]",
         ) ?? [],
       );
     const first = controls()[0];
     first?.focus();
     const trap = (event: KeyboardEvent) => {
       if (event.key !== "Tab") return;
+      if (dialog?.inert) {
+        event.preventDefault();
+        return;
+      }
       const list = controls();
       const a = list[0],
         b = list[list.length - 1];
@@ -170,17 +185,51 @@ export function ClubConsole({
     };
   }, [modal]);
   const manager = data.role === "owner" || data.role === "manager";
-  const shift = data.shifts.find((s) => !s.closed_at);
+  const editedProduct = modal === "product" ? selected as Product | null : null;
+  const dialogBusy = busy || preparingPhoto;
+  const shift = register ? register.active?.own_shift ?? undefined : data.shifts.find((s) => !s.closed_at);
   const metrics = reportFor(data, date);
-  const pending = data.bookings.filter(
+  const pending = data.paymentReviews ?? data.bookings.filter(
     (b) => b.status === "awaiting_verification",
   );
+  const overdue = data.paymentReviews?.filter((b) => b.overdue).length ?? 0;
+  const reviewOnly = params.get("review") === "1";
+  const dayOnly = tab === "bookings" && params.get("scope") === "day";
+  const reviewingPayment = modal === "verify" || modal === "reject-payment";
+  const reservationRows = (reviewOnly ? pending : data.bookings).filter((b) =>
+    (reviewOnly || !dayOnly || b.booking_date === initialDate) &&
+    `${b.customer_name} ${b.reference}`.toLowerCase().includes(search.toLowerCase()),
+  );
+  const products = data.products.filter((p) =>
+    `${p.name} ${p.sku} ${p.barcode}`.toLowerCase().includes(search.toLowerCase()),
+  );
+  const transactionRows = data.sales.filter((s) =>
+    `${s.number} ${s.customer_name}`.toLowerCase().includes(search.toLowerCase()),
+  );
+  const dailySales = data.sales.filter((s) => dayKey(s.created_at) === date);
+  const reservations = useTablePage(reservationRows.length, `${initialDate}:${tab}:${reviewOnly}:${dayOnly}:${search}`);
+  const inventory = useTablePage(products.length, `${tab}:${search}`);
+  const transactions = useTablePage(transactionRows.length, `${initialDate}:${tab}:${search}`);
+  const recentTransactions = useTablePage(data.sales.length, `${initialDate}:${tab}`, 5);
+  const collections = useTablePage(dailySales.length, `${initialDate}:${tab}`);
+  const paymentReviews = new Map(data.paymentReviews?.map((b) => [b.id, b]));
+  useEffect(() => {
+    if (demo || (tab !== "overview" && tab !== "bookings") || modal || reservationAction || isNavigating || !data.ready) return;
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") router.refresh();
+    }, 60000);
+    return () => clearInterval(interval);
+  }, [tab, modal, reservationAction, isNavigating, data.ready, router, demo]);
   const setPendingCount = workspace?.setPendingCount;
   useEffect(() => {
     setPendingCount?.(pending.length);
     return () => setPendingCount?.(0);
   }, [pending.length, setPendingCount]);
   const todayBookings = data.bookings.filter((b) => b.booking_date === date);
+  const courtBookings = todayBookings.filter((b) =>
+    b.booking_type === "court" && b.status !== "cancelled" && b.status !== "expired",
+  );
+  const scheduledCourts = calendarCourts(data.courts ?? defaultCourts, courtBookings);
   const lowStock = data.products.filter(
     (p) => p.active && p.stock <= p.reorder_level,
   );
@@ -196,16 +245,15 @@ export function ClubConsole({
     "All items",
     ...new Set(activeProducts.map((p) => p.category)),
   ];
-  function go(t: Tab) {
-    setTab(t);
-    setSearch("");
-    setCategory("All items");
+  function go(t: Tab, paymentReview = false) {
     setMobile(false);
-    if (!demo) {
-      const url = new URL(window.location.href);
-      url.searchParams.set("tab", t);
-      window.history.replaceState(null, "", url);
-    }
+    const url = new URL(window.location.href);
+    url.searchParams.set("tab", t);
+    url.searchParams.delete("q");
+    if (t !== "bookings") url.searchParams.delete("scope");
+    if (paymentReview) url.searchParams.set("review", "1");
+    else url.searchParams.delete("review");
+    window.history.replaceState(null, "", url);
   }
   function open(type: Modal, item: typeof selected = null) {
     setModal(type);
@@ -213,6 +261,18 @@ export function ClubConsole({
     setError("");
     setMethod("cash");
     setCash("");
+    if (type === "product") setProductPhoto(undefined);
+  }
+  async function chooseProductPhoto(file: File) {
+    setPreparingPhoto(true);
+    setError("");
+    try {
+      setProductPhoto(await prepareProductPhoto(file));
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "This photo couldn’t be prepared.");
+    } finally {
+      setPreparingPhoto(false);
+    }
   }
   function add(p: Product) {
     if ((cart[p.id] ?? 0) >= p.stock) {
@@ -233,23 +293,15 @@ export function ClubConsole({
     setBusy(true);
     setError("");
     try {
-      let output: Sale | undefined;
-      if (demo) {
-        const result = applyDemoCommand(data, command);
-        setData(result.data);
-        output = result.receipt;
-      } else {
-        const result = await posCommand(command);
-        if ("error" in result) throw new Error(result.error);
-        output = result.receipt;
-        startNavigation(() => router.refresh());
-      }
+      const result = demo ? applyDemoCommand(data, command) : await posCommand(command);
+      if (demo && "data" in result) setData(result.data);
+      if ("error" in result) throw new Error(result.error);
       if (command.op === "checkout") {
         setCart({});
         checkoutKey.current = null;
       }
-      if (output) {
-        setReceipt(output);
+      if (result.receipt) {
+        setReceipt(result.receipt);
         setModal("receipt");
       } else setModal(null);
       setToast(message);
@@ -262,6 +314,7 @@ export function ClubConsole({
     }
   }
   function exportCsv() {
+    const collections = tab === "reports";
     const rows = [
       [
         "Date",
@@ -272,10 +325,8 @@ export function ClubConsole({
         "Received PHP",
         "Refunded PHP",
       ],
-      ...data.sales
-        .filter((s) => dayKey(s.created_at) === date)
-        .map((s) => [
-          date,
+      ...data.sales.map((s) => [
+          dayKey(s.created_at),
           s.number,
           s.customer_name,
           s.kind,
@@ -284,30 +335,20 @@ export function ClubConsole({
           (s.refunded_cents / 100).toFixed(2),
         ]),
     ];
-    const csv = rows
-      .map((r) =>
-        r
-          .map(
-            (c) =>
-              `"${String(c)
-                .replace(/^[=+@-]/, "'$&")
-                .replaceAll('"', '""')}"`,
-          )
-          .join(","),
-      )
-      .join("\r\n");
+    const csv = collections ? collectionsCsv(data, date) : toCsv(rows);
     const url = URL.createObjectURL(
-      new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" }),
+      new Blob([csv], { type: "text/csv;charset=utf-8" }),
     );
     const a = document.createElement("a");
     a.href = url;
-    a.download = `rally-sales-${date}.csv`;
+    a.download = `rally-${collections ? "collections" : "transactions"}-${date}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-    setToast("Sales export downloaded.");
+    setToast(collections ? "Collections export downloaded." : "Transactions export downloaded.");
   }
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (modalClosing || preparingPhoto) return;
     const f = new FormData(event.currentTarget);
     const text = (key: string) => String(f.get(key) ?? "");
     const verified = f.get("verified") === "on";
@@ -341,10 +382,11 @@ export function ClubConsole({
           );
           break;
         case "product": {
-          const p = selected as Product | null;
+          const p = editedProduct;
           await run(
             {
               op: "product",
+              ...(productPhoto !== undefined && { photo: productPhoto }),
               payload: {
                 ...(p ? { id: p.id } : {}),
                 name: text("name"),
@@ -373,18 +415,6 @@ export function ClubConsole({
             "Stock movement recorded.",
           );
           break;
-        case "open":
-          await run(
-            { op: "open", amount: centavos(text("amount")) },
-            "Cashier shift opened.",
-          );
-          break;
-        case "close":
-          await run(
-            { op: "close", id: shift!.id, amount: centavos(text("amount")) },
-            "Shift closed. Cash count recorded.",
-          );
-          break;
         case "refund":
           if (!verified)
             throw new Error("Confirm the money was returned to the customer.");
@@ -408,6 +438,13 @@ export function ClubConsole({
           await run(
             { op: "verify", id: selected!.id, verified: true },
             "Payment verified. Booking confirmed.",
+          );
+          break;
+        case "reject-payment":
+          if (!verified) throw new Error("Confirm that you checked the GCash account.");
+          await run(
+            { op: "reject_payment", id: selected!.id, reason: text("reason"), verified: true },
+            "Payment reference rejected. Availability released.",
           );
           break;
         case "balance":
@@ -473,8 +510,23 @@ export function ClubConsole({
       setError(e instanceof Error ? e.message : "Please check the form.");
     }
   }
-  const tableSales = (list: Sale[]) => (
-    <div className="console-table-wrap">
+  const saleStatus = (s: Sale) => s.status === "refunded" ? "Refunded" : s.paid_cents < s.total_cents ? "Part-paid" : "Paid";
+  const saleActions = (s: Sale) => (
+    <div className="row-actions">
+      <button type="button" title="View receipt" aria-label={`View receipt ${s.number}`}
+        onClick={() => {
+          setReceipt(s);
+          open("receipt");
+        }}>
+        <ReceiptText size={17} />
+      </button>
+      {manager && s.refunded_cents === 0 && s.paid_cents > 0 && (
+        <button type="button" className="refund-link" onClick={() => open("refund", s)}>Refund</button>
+      )}
+    </div>
+  );
+  const tableSales = (list: Sale[], anchorId: string, label: string) => (
+    <div id={anchorId} className="console-table-wrap" tabIndex={-1} role="region" aria-label={label}>
       <table className="console-table">
         <thead>
           <tr>
@@ -496,7 +548,7 @@ export function ClubConsole({
               <td>{s.customer_name}</td>
               <td>
                 <span className="subtle-pill">
-                  {s.kind === "retail" ? "Retail" : "Court booking"}
+                  {s.kind === "retail" ? "Retail" : s.kind === "membership" ? "Membership" : "Court booking"}
                 </span>
               </td>
               <td>
@@ -511,35 +563,10 @@ export function ClubConsole({
                 <span
                   className={`status-pill ${s.status === "refunded" ? "status-muted" : "status-ok"}`}
                 >
-                  {s.status === "refunded"
-                    ? "Refunded"
-                    : s.paid_cents < s.total_cents
-                      ? "Part-paid"
-                      : "Paid"}
+                  {saleStatus(s)}
                 </span>
               </td>
-              <td>
-                <div className="row-actions">
-                  <button
-                    title="View receipt"
-                    aria-label={`View receipt ${s.number}`}
-                    onClick={() => {
-                      setReceipt(s);
-                      open("receipt");
-                    }}
-                  >
-                    <ReceiptText size={17} />
-                  </button>
-                  {manager && s.refunded_cents === 0 && s.paid_cents > 0 && (
-                    <button
-                      className="refund-link"
-                      onClick={() => open("refund", s)}
-                    >
-                      Refund
-                    </button>
-                  )}
-                </div>
-              </td>
+              <td>{saleActions(s)}</td>
             </tr>
           ))}
         </tbody>
@@ -554,13 +581,12 @@ export function ClubConsole({
   );
   return (
     <ConsoleFrame demo={demo} tab={tab} mobile={mobile} setMobile={setMobile} go={go}
-        onReset={() => {
-          setData(demoData());
-          setCart({});
-          checkoutKey.current = null;
-          setToast("Presentation data reset.");
-        }}
-      >
+      onReset={() => {
+        setData(demoData());
+        setCart({});
+        checkoutKey.current = null;
+        setToast("Sample data reset.");
+      }}>
         {demo && (
           <div className="presentation-banner">
             <span>
@@ -587,8 +613,8 @@ export function ClubConsole({
                   {data.error ??
                     "Database setup is required before live transactions."}
                 </p>
-                <Link href="/demo" className="console-button primary">
-                  Open presentation demo <ArrowUpRight size={16} />
+                <Link href="/admin" className="console-button primary">
+                  Open court calendar <ArrowUpRight size={16} />
                 </Link>
               </div>
             </div>
@@ -606,7 +632,8 @@ export function ClubConsole({
                     onChange={(e) => {
                       if (!e.target.value) return;
                       setDate(e.target.value);
-                      if (!demo) startNavigation(() => router.push(`/staff?date=${e.target.value}&tab=${tab}`));
+                      const nextDate = e.target.value;
+                      if (!demo) startNavigation(() => router.push(dayOnly ? reservationsForDateHref(nextDate) : `/staff?date=${nextDate}&tab=${tab}`));
                     }}
                   />
                 </label>
@@ -630,22 +657,15 @@ export function ClubConsole({
                   Add product
                 </button>
               )}
-              {tab === "bookings" &&
-                (demo ? (
-                  <button
-                    className="console-button primary"
-                    onClick={() => open("newbooking")}
-                  >
-                    <Plus size={16} />
-                    Sample booking
-                  </button>
-                ) : (
-                  manager && (
-                    <Link className="console-button primary" href="/admin">
-                      Court calendar <ArrowUpRight size={16} />
-                    </Link>
-                  )
-                ))}
+              {tab === "bookings" && (demo ? (
+                <button type="button" className="console-button primary" onClick={() => open("newbooking")}>
+                  <Plus size={16} /> Sample booking
+                </button>
+              ) : (
+                <Link className="console-button primary" href={`/admin?date=${date}`}>
+                  Court calendar <ArrowUpRight size={16} />
+                </Link>
+              ))}
               {["reports", "transactions"].includes(tab) && (
                 <button className="console-button" onClick={exportCsv}>
                   <Download size={16} />
@@ -657,176 +677,140 @@ export function ClubConsole({
             courtCount={activeCourts(data.courts).length} />}
           <div hidden={isNavigating}>
           {tab === "overview" && (
-            <>
-              <div className="metrics-grid">
+            <div className="overview-content">
+              {!demo && <div className="console-panel overview-register">
+                <RegisterControl data={register} shift={shift} operator={operator} ready={data.ready} />
+                <OnDutyControl key={initialDate} data={register} date={initialDate} manager={canAssign} followToday={followToday} />
+              </div>}
+              <div className="overview-operations">
+                <section className="console-panel">
+                  <div className="panel-heading">
+                    <h2>Needs attention</h2>
+                    <span className="attention-count">{pending.length + lowStock.length}</span>
+                  </div>
+                  <button type="button" className="attention-row" onClick={() => go("bookings", true)}>
+                    <span className="attention-icon peach"><QrCode size={17} aria-hidden="true" /></span>
+                    <span>
+                      <strong>Payments to verify</strong>
+                      {overdue > 0 && <small className="review-overdue">{overdue} overdue</small>}
+                    </span>
+                    <b>{pending.length}</b>
+                    <ChevronRight size={15} aria-hidden="true" />
+                  </button>
+                  <button type="button" className="attention-row" onClick={() => go("inventory")}>
+                    <span className="attention-icon lime"><Package size={17} aria-hidden="true" /></span>
+                    <span><strong>Low stock</strong></span>
+                    <b>{lowStock.length}</b>
+                    <ChevronRight size={15} aria-hidden="true" />
+                  </button>
+                </section>
+                <section className="console-panel">
+                  <div className="panel-heading">
+                    <h2>Court schedule</h2>
+                    <Link href={demo ? "/demo?tab=bookings" : `/admin?date=${date}`} className="overview-panel-link"
+                      onClick={demo ? (event) => { event.preventDefault(); go("bookings"); } : undefined}>
+                      Court calendar <ArrowUpRight size={15} aria-hidden="true" />
+                    </Link>
+                  </div>
+                  <div className="court-timeline">
+                    {scheduledCourts.map(({ id, name }) => {
+                      const bookings = courtBookings.filter((b) => b.court_id === id);
+                      return <div className="timeline-row" key={id}>
+                        <div className="timeline-court"><strong>{name}</strong></div>
+                        <div className="timeline-blocks">
+                          {bookings.map((b) => (
+                            <Link key={b.id}
+                              className={b.status === "confirmed" ? "block-confirmed" : b.status === "blocked" ? "block-closed" : "block-pending"}
+                              href={demo ? "/demo?tab=bookings" : b.status === "blocked" ? `/admin?date=${date}` : reservationsForDateHref(date, b.reference)}
+                              onClick={demo ? (event) => { event.preventDefault(); go("bookings"); } : undefined}>
+                              <strong>{formatHour(b.start_hour)}–{formatHour(b.start_hour + b.duration)}</strong>
+                              <span>{b.customer_name} · {statusName(b.status)}</span>
+                            </Link>
+                          ))}
+                          {!bookings.length && <span className="timeline-empty">No bookings</span>}
+                        </div>
+                      </div>;
+                    })}
+                    {data.openPlaySessions?.map(({ start, end, players, capacity }) => (
+                      <div className="timeline-row" key={`${start}:${end}`}>
+                        <div className="timeline-court">
+                          <strong>Open play</strong>
+                          <small>{formatHour(start)}–{formatHour(end)}</small>
+                        </div>
+                        <span className="overview-player-count">
+                          {capacity === null ? `${players} reserved` : `${players} / ${capacity} players`}
+                        </span>
+                      </div>
+                    ))}
+                    {!data.openPlaySessions && data.ready && <p className="overview-schedule-note">Open-play schedule unavailable.</p>}
+                    {scheduledCourts.length === 0 && data.openPlaySessions?.length === 0 &&
+                      <p className="overview-schedule-note">No courts scheduled for this date.</p>}
+                  </div>
+                </section>
+              </div>
+              <div className="metrics-grid overview-metrics">
                 <Metric
                   label="NET COLLECTIONS"
-                  value={peso(metrics.net)}
+                  value={<OverviewMetricValue value={metrics.net} currency animate={!isNavigating}
+                    trend={data.overviewTrends && { values: data.overviewTrends.net, label: "Daily net collections over the seven days ending on the selected date" }} />}
                   hint="Payments received less refunds"
                   icon={<Banknote size={19} />}
                   tone="lime"
                 />
                 <Metric
                   label="COURT RESERVATIONS"
-                  value={String(
-                    todayBookings.filter((b) => b.status === "confirmed")
-                      .length,
-                  )}
-                  hint={`${pending.length} payment${pending.length === 1 ? "" : "s"} to verify`}
+                  value={<OverviewMetricValue value={todayBookings.filter((b) => b.status === "confirmed").length} animate={!isNavigating}
+                    trend={data.overviewTrends && { values: data.overviewTrends.reservations, label: "Daily confirmed reservations over the seven days ending on the selected date" }} />}
+                  hint="Confirmed for the selected play date"
                   icon={<CalendarDays size={19} />}
                   tone="lavender"
                 />
                 <Metric
                   label="RETAIL SALES"
-                  value={peso(metrics.retail)}
+                  value={<OverviewMetricValue value={metrics.retail} currency animate={!isNavigating}
+                    trend={data.overviewTrends && { values: data.overviewTrends.retail, label: "Daily retail sales over the seven days ending on the selected date" }} />}
                   hint="Counter sales created on this date"
                   icon={<ShoppingBasket size={19} />}
                   tone="peach"
                 />
                 <Metric
                   label="BOOKING BALANCES"
-                  value={peso(metrics.due)}
+                  value={<OverviewMetricValue value={metrics.due} currency animate={!isNavigating}
+                    trend={data.overviewTrends && { values: data.overviewTrends.balances, label: "Outstanding balances by play date from the selected date through 30 days ahead" }} />}
                   hint="Confirmed reservations in the next 30 days"
                   icon={<Clock3 size={19} />}
                   tone="blue"
                 />
               </div>
-              <div className="overview-grid">
-                <section className="console-panel">
-                  <div className="panel-heading">
-                    <h2>
-                      Court schedule{" "}
-                      <span className="subtle-pill">
-                        {todayBookings.length}
-                      </span>
-                    </h2>
-                    <button onClick={() => go("bookings")}>
-                      All reservations <ArrowUpRight size={15} />
-                    </button>
-                  </div>
-                  <div className="court-timeline">
-                    {calendarCourts(data.courts ?? defaultCourts, todayBookings).map(({ id: n, name }, index) => (
-                      <div className="timeline-row" key={n}>
-                        <div className={`court-icon court-icon-${index % 2 + 1}`}>
-                          <span />
-                          <b>{String(n).padStart(2, "0")}</b>
-                        </div>
-                        <div className="timeline-court">
-                          <strong>{name}</strong>
-                          <small>
-                            {
-                              todayBookings.filter(
-                                (b) =>
-                                  b.court_id === n && b.status === "confirmed",
-                              ).length
-                            }{" "}
-                            confirmed sessions
-                          </small>
-                        </div>
-                        <div className="timeline-blocks">
-                          {todayBookings
-                            .filter(
-                              (b) =>
-                                b.court_id === n &&
-                                !["cancelled", "expired"].includes(b.status),
-                            )
-                            .map((b) => (
-                              <button
-                                key={b.id}
-                                className={
-                                  b.status === "confirmed"
-                                    ? "block-confirmed"
-                                    : "block-pending"
-                                }
-                                onClick={() => {
-                                  go("bookings");
-                                  setSearch(b.customer_name);
-                                }}
-                              >
-                                <strong>
-                                  {hourLabel(b.start_hour)}–
-                                  {hourLabel(b.start_hour + b.duration)}
-                                </strong>
-                                <span>{b.customer_name}</span>
-                              </button>
-                            ))}
-                          {!todayBookings.some((b) => b.court_id === n) && (
-                            <span className="timeline-empty">
-                              No bookings
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="timeline-legend">
-                    <span>
-                      <i />
-                      Confirmed
-                    </span>
-                    <span>
-                      <i />
-                      Payment pending
-                    </span>
-                  </div>
-                </section>
-                <section className="console-panel review-panel">
-                  <div className="panel-heading">
-                    <h2>Needs attention</h2>
-                    <span className="attention-count">
-                      {pending.length + lowStock.length}
-                    </span>
-                  </div>
-                  <button
-                    className="attention-row"
-                    onClick={() => go("bookings")}
-                  >
-                    <span className="attention-icon lavender">
-                      <QrCode size={20} />
-                    </span>
-                    <span>
-                      <strong>Payments to verify</strong>
-                    </span>
-                    <b>{pending.length}</b>
-                    <ChevronRight size={15} />
-                  </button>
-                  <button
-                    className="attention-row"
-                    onClick={() => go("inventory")}
-                  >
-                    <span className="attention-icon peach">
-                      <Package size={20} />
-                    </span>
-                    <span>
-                      <strong>Low stock</strong>
-                    </span>
-                    <b>{lowStock.length}</b>
-                    <ChevronRight size={15} />
-                  </button>
-                  <div className="shift-summary">
-                    <span className="live-dot" />
-                    <span>
-                      {shift
-                        ? "Shift open"
-                        : "Shift closed"}
-                    </span>
-                    <button onClick={() => open(shift ? "close" : "open")}>
-                      {shift ? "Close shift" : "Open shift"}
-                      <ArrowUpRight size={13} />
-                    </button>
-                  </div>
-                </section>
-              </div>
               <section className="console-panel">
                 <div className="panel-heading">
                   <h2>Recent transactions</h2>
-                  <button onClick={() => go("transactions")}>
-                    View all <ArrowUpRight size={15} />
+                  <button type="button" className="overview-panel-link" onClick={() => go("transactions")}>
+                    View all <ArrowUpRight size={15} aria-hidden="true" />
                   </button>
                 </div>
-                {tableSales(data.sales.slice(0, 5))}
+                <div id="recent-transactions" tabIndex={-1} role="region" aria-label="Recent transactions">
+                  {data.sales.length ? (
+                    <ul className="overview-transactions">
+                      {data.sales.slice(recentTransactions.start, recentTransactions.end).map((s) => (
+                        <li key={s.id}>
+                          <div>
+                            <strong>{s.kind === "retail" ? "Counter sale" : s.kind === "membership" ? "Membership" : "Court booking"}</strong>
+                            <small>{s.customer_name} · {s.number}</small>
+                          </div>
+                          <div className="overview-transaction-amount">
+                            <strong>{peso(s.total_cents)}</strong>
+                            <small>{saleStatus(s)}{s.paid_cents < s.total_cents && ` · ${peso(s.total_cents - s.paid_cents)} outstanding`}</small>
+                          </div>
+                          {saleActions(s)}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : <p className="overview-schedule-note">No transactions for this date.</p>}
+                </div>
+                <TablePagination {...recentTransactions} label="Recent transaction pages" anchorId="recent-transactions" />
               </section>
-            </>
+            </div>
           )}
           {tab === "pos" && (
             <div className="pos-layout">
@@ -884,7 +868,8 @@ export function ClubConsole({
                         <div
                           className={`product-art product-art-${p.category.toLowerCase()}`}
                         >
-                          <ProductArt category={p.category} index={i} />
+                          <ProductPhoto src={productPhotoUrl(p.photo_version)} className="product-tile-photo"
+                            fallback={<ProductArt category={p.category} index={i} />} />
                           <span className="product-add">
                             <Plus size={16} />
                           </span>
@@ -1002,11 +987,11 @@ export function ClubConsole({
                       className="open-shift-link"
                       onClick={() => open("open")}
                     >
-                      Open a cashier shift to accept payments
+                      Open a register shift to accept payments
                     </button>
                   ) : (
                     <span className="cart-secure">
-                      <CheckCircle2 size={13} /> Your cashier shift is active
+                      <CheckCircle2 size={13} /> Your register shift is active
                     </span>
                   )}
                 </div>
@@ -1031,9 +1016,31 @@ export function ClubConsole({
                     onChange={(e) => setSearch(e.target.value)}
                   />
                 </div>
-                <span className="subtle-pill">{pending.length} to verify</span>
+                {dayOnly && !reviewOnly && <Link className="text-link" href={`/staff?tab=bookings&date=${date}`}>
+                  Show upcoming reservations
+                </Link>}
               </div>
-              <div className="console-table-wrap">
+              <div className="category-tabs payment-review-tabs" role="group" aria-label="Reservation views">
+                <button type="button" aria-pressed={!reviewOnly} className={!reviewOnly ? "active" : ""}
+                  onClick={() => go("bookings")}>
+                  {dayOnly ? "Reservations for this date" : "All reservations"}
+                </button>
+                <button type="button" aria-pressed={reviewOnly} className={reviewOnly ? "active" : ""}
+                  onClick={() => go("bookings", true)}>
+                  GCash review ({pending.length})
+                </button>
+              </div>
+              {!demo && reviewOnly && !data.paymentReviews && (
+                <p className="payment-review-notice" role="status">
+                  The full GCash review queue is unavailable. Showing payments from the selected reservation period. Check migration 018 and refresh.
+                </p>
+              )}
+              {reviewOnly && overdue > 0 && (
+                <p className="payment-review-notice review-overdue" role="status">
+                  {overdue === 1 ? "1 payment review is overdue." : `${overdue} payment reviews are overdue.`} Check your GCash account to verify or reject the references.
+                </p>
+              )}
+              <div id="staff-reservation-table" className="console-table-wrap" tabIndex={-1} role="region" aria-label="Reservations">
                 <table className="console-table">
                   <thead>
                     <tr>
@@ -1045,17 +1052,15 @@ export function ClubConsole({
                     </tr>
                   </thead>
                   <tbody>
-                    {data.bookings
-                      .filter((b) =>
-                        `${b.customer_name} ${b.reference}`
-                          .toLowerCase()
-                          .includes(search.toLowerCase()),
-                      )
-                      .map((b) => (
+                    {reservationRows.slice(reservations.start, reservations.end).map((b) => {
+                      const review = paymentReviews.get(b.id);
+                      return (
                         <tr key={b.id}>
                           <td>
                             <strong>{b.customer_name}</strong>
-                            <small>{b.reference}</small>
+                            <small>{manager && !demo && b.status !== "blocked"
+                              ? <Link className="text-link" href={`/booking/${b.id}`}>{b.reference}</Link>
+                              : b.reference}</small>
                           </td>
                           <td>
                             {b.booking_type === "open_play"
@@ -1081,22 +1086,26 @@ export function ClubConsole({
                             <span
                               className={`status-pill ${b.status === "confirmed" ? "status-ok" : b.status.includes("awaiting") ? "status-pending" : "status-muted"}`}
                             >
-                              {statusName(b.status)}
+                              {review?.overdue ? "Review overdue" : statusName(b.status)}
                             </span>
+                            {reviewOnly && review?.payment_submitted_at && (
+                              <small>Submitted {dateLabel(review.payment_submitted_at)}</small>
+                            )}
                           </td>
                           <td>
+                            <div className="reservation-row-actions">
                             {b.status === "awaiting_verification" ? (
                               <button
                                 className="console-button small primary"
                                 onClick={() => open("verify", b)}
                               >
-                                Verify payment
+                                Review payment
                               </button>
                             ) : b.status === "confirmed" &&
                               Number(b.paid_amount) < Number(b.total_amount) ? (
                               <button
                                 className="console-button small"
-                                onClick={() => open("balance", b)}
+                                onClick={() => manager && !demo ? setReservationAction({ kind: "balance", booking: b }) : open("balance", b)}
                               >
                                 Collect balance
                               </button>
@@ -1105,18 +1114,26 @@ export function ClubConsole({
                                 {b.status === "confirmed" ? "Fully paid" : "—"}
                               </span>
                             )}
+                            {manager && !demo && ["awaiting_payment", "awaiting_verification", "confirmed"].includes(b.status) &&
+                              <button type="button" className="console-button small"
+                                aria-label={`Cancel reservation ${b.reference}`}
+                                onClick={() => setReservationAction({ kind: "cancel", booking: b })}>Cancel reservation</button>}
+                            </div>
                           </td>
                         </tr>
-                      ))}
+                      );
+                    })}
                   </tbody>
                 </table>
-                {!data.bookings.length && (
+                {!reservationRows.length && (
                   <Empty
-                    title="No reservations"
-                    text="Customer bookings and staff walk-ins appear here."
+                    title={search ? "No matching reservations" : reviewOnly ? "No GCash payments to review" : "No reservations"}
+                    text={search ? "Try a different name or booking reference." : reviewOnly ? "Submitted GCash references will appear here." : "Customer bookings and staff walk-ins appear here."}
                   />
                 )}
               </div>
+              <TablePagination {...reservations} label={reviewOnly ? "GCash review pages" : "Staff reservation pages"}
+                anchorId="staff-reservation-table" />
             </section>
           )}
           {tab === "inventory" && (
@@ -1154,7 +1171,7 @@ export function ClubConsole({
                     />
                   </div>
                 </div>
-                <div className="console-table-wrap">
+                <div id="inventory-table" className="console-table-wrap" tabIndex={-1} role="region" aria-label="Inventory">
                   <table className="console-table">
                     <thead>
                       <tr>
@@ -1167,19 +1184,20 @@ export function ClubConsole({
                       </tr>
                     </thead>
                     <tbody>
-                      {data.products
-                        .filter((p) =>
-                          `${p.name} ${p.sku} ${p.barcode}`
-                            .toLowerCase()
-                            .includes(search.toLowerCase()),
-                        )
+                      {products
+                        .slice(inventory.start, inventory.end)
                         .map((p) => (
                           <tr key={p.id}>
                             <td>
-                              <strong>{p.name}</strong>
-                              <small>
-                                {p.sku} · {p.barcode || "No barcode"}
-                              </small>
+                              <div className="inventory-product">
+                                <div className="product-thumbnail" aria-hidden="true">
+                                  <ProductPhoto src={productPhotoUrl(p.photo_version)} fallback={<Package size={16} />} />
+                                </div>
+                                <div>
+                                  <strong>{p.name}</strong>
+                                  <small>{p.sku} · {p.barcode || "No barcode"}</small>
+                                </div>
+                              </div>
                             </td>
                             <td>{p.category}</td>
                             <td>{peso(p.price_cents)}</td>
@@ -1220,13 +1238,14 @@ export function ClubConsole({
                         ))}
                     </tbody>
                   </table>
-                  {!data.products.length && (
+                  {!products.length && (
                     <Empty
-                      title="No products"
-                      text="Add a product to start tracking stock."
+                      title={search ? "No matching products" : "No products"}
+                      text={search ? "Try a different product name, SKU, or barcode." : "Add a product to start tracking stock."}
                     />
                   )}
                 </div>
+                <TablePagination {...inventory} label="Inventory pages" anchorId="inventory-table" />
               </section>
               <section className="console-panel movement-panel">
                 <div className="panel-heading">
@@ -1270,13 +1289,8 @@ export function ClubConsole({
                 </div>
                 <span className="subtle-pill">{data.sales.length} records</span>
               </div>
-              {tableSales(
-                data.sales.filter((s) =>
-                  `${s.number} ${s.customer_name}`
-                    .toLowerCase()
-                    .includes(search.toLowerCase()),
-                ),
-              )}
+              {tableSales(transactionRows.slice(transactions.start, transactions.end), "transaction-table", "Transactions")}
+              <TablePagination {...transactions} label="Transaction pages" anchorId="transaction-table" />
             </section>
           )}
           {tab === "reports" && (
@@ -1321,7 +1335,8 @@ export function ClubConsole({
                     {[
                       ["Cash", metrics.cash, "lime"],
                       ["GCash", metrics.gcash, "lavender"],
-                    ].map(([label, n, tone]) => (
+                      ["Other methods", metrics.other, "lime"],
+                    ].filter(([label, value]) => label !== "Other methods" || value !== 0).map(([label, n, tone]) => (
                       <div key={String(label)}>
                         <div>
                           <strong>{String(label)}</strong>
@@ -1342,15 +1357,16 @@ export function ClubConsole({
                     <summary>How collections are counted</summary>
                     <p>
                     Collections follow the payment date. A reservation fee and
-                    its later balance are separate receipts of money.
+                    its later balance are separate receipts of money. Collections
+                    before the POS launch are available in Booking finance.
                     </p>
                   </details>
                 </section>
                 <section className="console-panel">
                   <div className="panel-heading">
-                    <h2>Cashier shifts</h2>
+                    <h2>Register shifts</h2>
                     <button
-                      disabled={!data.ready}
+                      disabled={!data.ready || Boolean(register?.active && !shift)}
                       onClick={() => open(shift ? "close" : "open")}
                     >
                       {shift ? "Close shift" : "Open shift"}
@@ -1398,9 +1414,8 @@ export function ClubConsole({
                     Export
                   </button>
                 </div>
-                {tableSales(
-                  data.sales.filter((s) => dayKey(s.created_at) === date),
-                )}
+                {tableSales(dailySales.slice(collections.start, collections.end), "collection-sales-table", "Sales for the selected date")}
+                <TablePagination {...collections} label="Collection sales pages" anchorId="collection-sales-table" />
               </section>
             </>
           )}
@@ -1418,28 +1433,56 @@ export function ClubConsole({
           </button>
         </div>
       )}
-      {modal && (
+      {reservationAction?.kind === "balance" && (
+        <BalancePaymentModal booking={reservationAction.booking} closing={reservationActionClosing}
+          onClose={() => setReservationAction(null)} />
+      )}
+      {reservationAction?.kind === "cancel" && (
+        <StaffCancelBookingModal booking={reservationAction.booking} closing={reservationActionClosing}
+          onClose={() => setReservationAction(null)} onSaved={() => {
+            setReservationAction(null);
+            setToast("Reservation cancelled.");
+          }} />
+      )}
+      {(modal === "open" || modal === "close") && (
+        <RegisterShiftDialog key={modal} submitCommand={demo ? (command) => {
+          try {
+            setData(applyDemoCommand(data, command).data);
+            return { ok: true };
+          } catch (error) {
+            return { error: error instanceof Error ? error.message : "The sample shift couldn’t be saved." };
+          }
+        } : undefined} shift={modal === "close" ? shift : undefined} operator={operator}
+          closing={modalClosing} onClose={() => setModal(null)} onSaved={(message) => {
+            setModal(null);
+            setToast(message);
+          }} />
+      )}
+      {modal && modal !== "open" && modal !== "close" && (
         <div
           className={`console-modal-backdrop ${modal === "receipt" ? "receipt-backdrop" : ""}`}
+          data-closing={modalClosing || undefined}
           onMouseDown={(e) => {
-            if (e.target === e.currentTarget && !busy) setModal(null);
+            if (e.target === e.currentTarget && !dialogBusy && !modalClosing) setModal(null);
           }}
         >
           <div
             className={`console-modal ${modal === "receipt" ? "receipt-modal" : ""}`}
+            data-closing={modalClosing || undefined}
+            inert={modalClosing}
             role="dialog"
             aria-modal="true"
             aria-label={
-              modal === "receipt" ? "Transaction receipt" : `${modal} form`
+              modal === "receipt" ? "Transaction receipt" : reviewingPayment ? "Review GCash payment" : `${modal} form`
             }
             onKeyDown={(e) => {
-              if (e.key === "Escape" && !busy) setModal(null);
+              if (e.key === "Escape" && !dialogBusy) setModal(null);
             }}
           >
             <button
               className="modal-close"
               aria-label="Close dialog"
-              disabled={busy}
+              disabled={dialogBusy}
               onClick={() => setModal(null)}
             >
               <X size={20} />
@@ -1498,9 +1541,7 @@ export function ClubConsole({
                     See you at the net.
                   </p>
                   <small className="receipt-disclaimer">
-                    {demo
-                      ? "Sample only. No money has been collected."
-                      : "A record of the transaction. Request the venue’s authorized invoice separately."}
+                    A record of the transaction. Request the venue’s authorized invoice separately.
                   </small>
                 </div>
                 <button
@@ -1518,23 +1559,21 @@ export function ClubConsole({
                 </button>
               </>
             ) : (
-              <form onSubmit={submit}>
-                {demo && <span className="console-kicker">DEMO</span>}
+              <form key={modal} onSubmit={submit}>
                 <h2>
                   {
                     (
                       {
+                        newbooking: "Sample booking",
                         checkout: "Complete sale",
                         product: selected
                           ? "Edit product"
                           : "Add product",
                         stock: "Adjust stock",
-                        open: "Open shift",
-                        close: "Close shift",
                         refund: "Record refund",
                         balance: "Collect balance",
                         verify: "Verify GCash payment",
-                        newbooking: "Sample booking",
+                        "reject-payment": "Reject GCash reference",
                       } as Record<string, string>
                     )[modal]
                   }
@@ -1604,6 +1643,14 @@ export function ClubConsole({
                 )}
                 {modal === "product" && (
                   <>
+                    {!demo && <ProductPhotoField
+                      src={productPhoto ? previewProductPhoto(productPhoto)
+                        : productPhoto === null ? undefined : productPhotoUrl(editedProduct?.photo_version)}
+                      preparing={preparingPhoto} disabled={dialogBusy || modalClosing}
+                      onChoose={chooseProductPhoto} onRemove={() => {
+                        setProductPhoto(editedProduct?.photo_version ? null : undefined);
+                        setError("");
+                      }} />}
                     <div className="form-two">
                       <label>
                         Product name
@@ -1624,13 +1671,7 @@ export function ClubConsole({
                           defaultValue={
                             (selected as Product)?.category ?? "Drinks"
                           }
-                          list="categories"
                         />
-                        <datalist id="categories">
-                          {["Drinks", "Snacks", "Gear", "Merch"].map((c) => (
-                            <option key={c}>{c}</option>
-                          ))}
-                        </datalist>
                       </label>
                       <label>
                         SKU
@@ -1737,44 +1778,6 @@ export function ClubConsole({
                     </p>
                   </>
                 )}
-                {modal === "open" && (
-                  <>
-                    <p>Count the starting cash float before accepting sales.</p>
-                    <label>
-                      Opening cash (PHP)
-                      <input
-                        name="amount"
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        required
-                        defaultValue="1000"
-                      />
-                    </label>
-                  </>
-                )}
-                {modal === "close" && shift && (
-                  <>
-                    <div className="modal-amount">
-                      <span>Expected cash in drawer</span>
-                      <strong>{peso(shift.expected_cents)}</strong>
-                    </div>
-                    <p className="form-note">
-                      Opening float + cash collections − cash refunds. GCash
-                      stays separate.
-                    </p>
-                    <label>
-                      Actual cash counted (PHP)
-                      <input
-                        name="amount"
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        required
-                      />
-                    </label>
-                  </>
-                )}
                 {modal === "refund" && (
                   <>
                     <div className="modal-amount">
@@ -1807,7 +1810,7 @@ export function ClubConsole({
                     <Verified text="I have returned the full collected amount to the customer." />
                   </>
                 )}
-                {(modal === "balance" || modal === "verify") && (
+                {(modal === "balance" || reviewingPayment) && (
                   <>
                     <div className="modal-amount">
                       <span>
@@ -1817,7 +1820,7 @@ export function ClubConsole({
                       <strong>
                         {peso(
                           Math.round(
-                            (modal === "verify"
+                            (reviewingPayment
                               ? Number(
                                   (selected as PosBooking)
                                     .initial_payment_amount,
@@ -1829,7 +1832,7 @@ export function ClubConsole({
                         )}
                       </strong>
                     </div>
-                    {modal === "verify" ? (
+                    {reviewingPayment ? (
                       <>
                         <p className="payment-reference-box">
                           <QrCode size={20} />
@@ -1840,11 +1843,25 @@ export function ClubConsole({
                             </strong>
                           </span>
                         </p>
-                        <p className="form-note">
-                          Match the amount, reference, and recipient against the
-                          actual incoming GCash transaction.
-                        </p>
-                        <Verified text="I verified the incoming payment in the GCash account." />
+                        {modal === "reject-payment" ? (
+                          <>
+                            <p className="form-note">
+                              Rejecting this reference cancels the reservation and releases the court or open-play places.
+                            </p>
+                            <label>
+                              Rejection reason (staff only)
+                              <textarea name="reason" required minLength={3} maxLength={200} rows={3} />
+                            </label>
+                            <Verified text="I checked the GCash account and found no matching incoming payment." />
+                          </>
+                        ) : (
+                          <>
+                            <p className="form-note">
+                              Match the amount, reference, and recipient against the actual incoming GCash transaction.
+                            </p>
+                            <Verified text="I verified the incoming payment in the GCash account." />
+                          </>
+                        )}
                       </>
                     ) : (
                       <>
@@ -1863,7 +1880,7 @@ export function ClubConsole({
                         <Verified text="I received and checked the complete outstanding balance." />
                         {!shift && (
                           <p className="form-note">
-                            Cash requires an open cashier shift.
+                            Cash requires an open register shift.
                           </p>
                         )}
                       </>
@@ -1948,8 +1965,8 @@ export function ClubConsole({
                 )}
                 <button
                   type="submit"
-                  disabled={busy || !data.ready}
-                  className="console-button primary full-width"
+                  disabled={dialogBusy || !data.ready}
+                  className={`console-button full-width ${modal === "reject-payment" ? "reject-payment-button" : "primary"}`}
                 >
                   {busy
                     ? "Saving…"
@@ -1957,22 +1974,26 @@ export function ClubConsole({
                       ? `Complete sale · ${peso(total)}`
                       : modal === "verify"
                         ? "Verify payment & confirm booking"
+                        : modal === "reject-payment"
+                          ? "Reject reference & release reservation"
                         : modal === "refund"
                           ? "Record completed refund"
-                          : modal === "close"
-                            ? "Close shift & record cash count"
-                            : modal === "newbooking"
-                              ? "Submit sample GCash reference"
-                              : "Save & continue"}
+                          : "Save & continue"}
                   <Check size={17} />
                 </button>
+                {modal === "verify" && selected && paymentReviews.has(selected.id) && (
+                  <button type="button" className="console-button full-width" disabled={busy}
+                    onClick={() => open("reject-payment", selected)}>
+                    Reject reference
+                  </button>
+                )}
                 <button
                   type="button"
                   className="cancel-button"
-                  disabled={busy}
-                  onClick={() => setModal(null)}
+                  disabled={dialogBusy}
+                  onClick={() => modal === "reject-payment" ? open("verify", selected) : setModal(null)}
                 >
-                  Cancel
+                  {modal === "reject-payment" ? "Back to payment review" : "Cancel"}
                 </button>
               </form>
             )}
@@ -1990,7 +2011,7 @@ function Metric({
   tone,
 }: {
   label: string;
-  value: string;
+  value: string | React.ReactElement;
   hint: string;
   icon: React.ReactNode;
   tone: string;
@@ -2001,7 +2022,7 @@ function Metric({
         <span>{label.charAt(0) + label.slice(1).toLowerCase()}</span>
         {icon}
       </div>
-      <strong>{value}</strong>
+      {typeof value === "string" ? <strong>{value}</strong> : value}
       <p>{hint}</p>
     </article>
   );

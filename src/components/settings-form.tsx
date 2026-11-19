@@ -14,13 +14,16 @@ import type { VenueSettings } from "@/lib/types";
 import { TypedSettingField } from "./typed-setting-field";
 import { ScheduleEditor } from "./schedule-editor";
 import { CourtManager } from "./court-manager";
+import { MembershipEditor } from "./membership-editor";
 import { activeCourts, defaultCourts } from "@/lib/courts";
 import type { IndividualSettingKey } from "@/lib/venue-setting";
+import { membershipPlanLabels, type MembershipPlan, type MembershipPlanId } from "@/lib/membership";
 import { WorkspacePageHeading } from "./workspace-page-heading";
 import { WorkspaceTabs } from "./workspace-tabs";
 
 const sections = [
   { id: "details", label: "Venue details" },
+  { id: "membership", label: "Membership" },
   { id: "courts", label: "Courts" },
   { id: "schedule", label: "Hours & rates" },
   { id: "payments", label: "Payments" },
@@ -35,9 +38,16 @@ type SettingFieldOptions = Pick<
 >;
 type FieldFeedback = { error?: string; message?: string };
 
-export function SettingsForm({ initial, courtsReady = false }: { initial: VenueSettings; courtsReady?: boolean }) {
+export function SettingsForm({ initial, courtsReady = false, membership }: {
+  initial: VenueSettings;
+  courtsReady?: boolean;
+  membership: MembershipPlan[] | null;
+}) {
+  const canEditMembership = membership !== null;
+  const availableSections = canEditMembership ? sections : sections.filter((item) => item.id !== "membership");
   const [venue, setVenue] = useState(initial);
   const [section, setSection] = useState<SettingsSection>("details");
+  const [membershipPlan, setMembershipPlan] = useState<MembershipPlanId>("annual");
   const [dirty, setDirty] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -55,13 +65,13 @@ export function SettingsForm({ initial, courtsReady = false }: { initial: VenueS
   const router = useRouter();
   useEffect(() => {
     const syncSection = () => {
-      const next = sections.find((item) => `#venue-${item.id}` === window.location.hash);
+      const next = sections.find((item) => `#venue-${item.id}` === window.location.hash && (item.id !== "membership" || canEditMembership));
       setSection(next?.id ?? "details");
     };
     syncSection();
     window.addEventListener("hashchange", syncSection);
     return () => window.removeEventListener("hashchange", syncSection);
-  }, []);
+  }, [canEditMembership]);
   function selectSection(next: SettingsSection) {
     setSection(next);
     const url = new URL(window.location.href);
@@ -166,7 +176,7 @@ export function SettingsForm({ initial, courtsReady = false }: { initial: VenueS
             [key]: {
               message:
                 key === "open_play_capacity"
-                  ? `Player limit applied. ${openPlayCapacityLabel(value)}.`
+                  ? `Player limit applied. ${openPlayCapacityLabel(value, activeCourts(venue.courts).length)}.`
                   : "Applied.",
             },
           }));
@@ -285,24 +295,34 @@ export function SettingsForm({ initial, courtsReady = false }: { initial: VenueS
   return (
     <>
       <WorkspacePageHeading title="Venue settings" actions={<>
-          <a className="console-button" href="/" target="_blank" rel="noreferrer">View website <ArrowUpRight size={15} /></a>
-          {section !== "courts" && section !== "schedule" &&
+          <a className="console-button" href={section === "membership" ? "/membership" : "/"} target="_blank" rel="noreferrer">
+            {section === "membership" ? "View membership page" : "View website"} <ArrowUpRight size={15} />
+          </a>
+          {section !== "membership" && section !== "courts" && section !== "schedule" &&
           <button type="submit" form="venue-settings-form" className="console-button primary" disabled={pending || fieldPending || uploading}>
             <Save size={16} />{pending ? "Saving…" : "Save changes"}
           </button>}
       </>} />
-      <div className="settings-status-bar">
+      {section !== "membership" && <div className="settings-status-bar">
         <span><CalendarDays size={16} />{activeCourts(venue.courts).length} active courts</span>
         <span className={dirty ? "settings-unsaved" : ""}>{dirty ? "Unsaved venue changes" : "Saved venue settings"}</span>
-      </div>
-      <WorkspaceTabs id="settings" label="Venue settings sections" items={sections} value={section} onChange={selectSection} />
+      </div>}
+      <WorkspaceTabs id="settings" label="Venue settings sections" items={availableSections} value={section} onChange={selectSection} />
       <div className="venue-settings-layout">
         <div className="venue-settings-main">
         <div id="settings-panel-courts" role="tabpanel" aria-labelledby="settings-tab-courts" hidden={section !== "courts"} tabIndex={0}>
         <CourtManager initial={initial.courts ?? defaultCourts} ready={courtsReady}
           onChange={(courts) => setVenue((old) => ({ ...old, courts }))} />
         </div>
-        <form id="venue-settings-form" className="venue-settings-form" onSubmit={submit} noValidate hidden={section === "courts" || section === "schedule"}>
+        {membership && <section id="settings-panel-membership" role="tabpanel" aria-labelledby="settings-tab-membership" hidden={section !== "membership"} tabIndex={0}>
+          <WorkspaceTabs id="membership-plan" label="Membership plans" value={membershipPlan} onChange={setMembershipPlan}
+            items={membership.map(({ id }) => ({ id, label: membershipPlanLabels[id] }))} />
+          {membership.map((plan) => <div key={plan.id} id={`membership-plan-panel-${plan.id}`} role="tabpanel"
+            aria-labelledby={`membership-plan-tab-${plan.id}`} hidden={membershipPlan !== plan.id} tabIndex={0}>
+            <MembershipEditor initial={plan} />
+          </div>)}
+        </section>}
+        <form id="venue-settings-form" className="venue-settings-form" onSubmit={submit} noValidate hidden={section === "membership" || section === "courts" || section === "schedule"}>
           <section id="settings-panel-details" data-settings-section="details" role="tabpanel" aria-labelledby="settings-tab-details" hidden={section !== "details"} tabIndex={0} className="console-panel settings-card">
             <header className="settings-card-heading"><span className="settings-card-icon"><Building2 size={20} /></span><div><h2>Venue details</h2></div></header>
           <div className="settings-card-body">
@@ -495,7 +515,7 @@ export function SettingsForm({ initial, courtsReady = false }: { initial: VenueS
           <ScheduleEditor initial={initial} />
         </section>
         </div>
-        <details className="console-panel settings-readiness workspace-disclosure">
+        <details className="console-panel settings-readiness workspace-disclosure" hidden={section === "membership"}>
           <summary>Booking setup <span className={`status-pill ${canBook(venue) ? "status-ok" : "status-pending"}`}>{canBook(venue) ? "Ready" : "Needs attention"}</span></summary>
           <ul style={{ listStyle: "none", padding: 0 }}>
             {[

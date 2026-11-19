@@ -135,7 +135,7 @@ export function toCsv(rows: (string | number)[][]) {
       .join("\r\n")
   );
 }
-export function monthCsv(days: FinanceDay[], courts: Court[] = defaultCourts) {
+export function monthFinanceRows(days: FinanceDay[], courts: Court[] = defaultCourts) {
   const headers = [
     "Date (PHT)",
     ...courts.map((court) => `${court.name} sales (PHP)`),
@@ -161,14 +161,17 @@ export function monthCsv(days: FinanceDay[], courts: Court[] = defaultCourts) {
     ...courts.map((c) => courtFinance(day, c.id).sales), day.open_play_sales, day.total_sales,
     ...courts.map((c) => courtFinance(day, c.id).hours), ...fields.map((key) => Number(day[key])),
   ];
-  return toCsv([
+  return [
     headers,
     ...days.map((d) => [d.report_date, ...values(d)]),
     ["MONTH TOTAL", ...values(totals)],
-  ]);
+  ];
 }
-export function dayCsv(bookings: FinanceBooking[], notes: FinanceDayNotes, courts?: Court[]) {
-  return toCsv([
+export function monthCsv(days: FinanceDay[], courts?: Court[]) {
+  return toCsv(monthFinanceRows(days, courts));
+}
+export function dayFinanceRows(bookings: FinanceBooking[], notes: FinanceDayNotes, courts?: Court[]) {
+  return [
     ["Play date (PHT)", notes.report_date],
     ["Worker on duty", notes.worker_on_duty],
     ["Manager notes", notes.manager_notes],
@@ -176,6 +179,11 @@ export function dayCsv(bookings: FinanceBooking[], notes: FinanceDayNotes, court
       "Amounts are assigned to play date. Collections include verified payments only; unpaid balances are separate. Equipment collections are allocated proportionally. Refunds are not tracked here.",
     ],
     [],
+    ...reservationFinanceRows(bookings, courts),
+  ];
+}
+export function reservationFinanceRows(bookings: FinanceBooking[], courts?: Court[]) {
+  return [
     [
       "Reference",
       "Play date (PHT)",
@@ -230,7 +238,10 @@ export function dayCsv(bookings: FinanceBooking[], notes: FinanceDayNotes, court
       b.balance_payment_method ? paymentMethods[b.balance_payment_method] : "",
       b.balance_payment_reference || "",
     ]),
-  ]);
+  ];
+}
+export function dayCsv(bookings: FinanceBooking[], notes: FinanceDayNotes, courts?: Court[]) {
+  return toCsv(dayFinanceRows(bookings, notes, courts));
 }
 export function monthLabel(month: string) {
   return formatDate(`${month}-01`, { month: "long", year: "numeric" });

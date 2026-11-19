@@ -1,16 +1,21 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { useEffect, useId, useRef } from "react";
 import { X } from "lucide-react";
 export function Modal({
   title,
   onClose,
   children,
+  closing = false,
+  className,
 }: {
   title: string;
   onClose: () => void;
   children: React.ReactNode;
+  closing?: boolean;
+  className?: string;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
   useEffect(() => {
     const element = dialog.current!;
     const previous = document.activeElement as HTMLElement | null;
@@ -20,19 +25,21 @@ export function Modal({
     return () => {
       element.close();
       document.body.style.overflow = bodyOverflow;
-      previous?.focus();
+      if (previous?.isConnected) previous.focus({ preventScroll: true });
     };
   }, []);
   return (
     <dialog
       ref={dialog}
-      className="panel modal"
+      className={className ? `panel modal ${className}` : "panel modal"}
+      data-closing={closing || undefined}
+      inert={closing}
       onCancel={(e) => {
         e.preventDefault();
-        onClose();
+        if (!closing) onClose();
       }}
       onClick={(e) => {
-        if (e.target === dialog.current) onClose();
+        if (e.target === dialog.current && !closing) onClose();
       }}
       style={{
         position: "fixed",
@@ -40,11 +47,12 @@ export function Modal({
         border: "1px solid var(--line)",
         color: "var(--ink)",
       }}
-      aria-labelledby="modal-title"
+      aria-labelledby={titleId}
     >
       <div className="modal-header">
-        <h2 id="modal-title">{title}</h2>
+        <h2 id={titleId}>{title}</h2>
         <button
+          type="button"
           className="icon-button"
           aria-label="Close dialog"
           onClick={onClose}

@@ -15,11 +15,16 @@ npm run dev -- --port 3001
 - `http://localhost:3001/demo` — interactive client presentation; no sign-in or database setup required. All customers, products, payments, and reservations here are sample data held in memory. Reload or use **Reset sample data** to restart.
 - `/book` — real customer court/open-play calendar. Browsing remains available as a labeled preview until the database is configured; live reservations fail closed.
 - `/staff` — authenticated club management, cashier, inventory, payment reviews, transactions, and reports.
+- `/paddle-stack/[session]` — live open-play queue and scorekeeper. Staff open the queue from the workspace.
+- `/membership` — plan details and applications. Staff manage plans, discounts, payments, and active memberships from the workspace.
+- `/order` — customer pickup orders. The staff pickup queue is at `/staff/pickup-orders`.
 - `/admin` — manager court calendar and walk-ins; `/admin/settings` — venue details, rates, schedule, GCash QR, and booking toggle.
 
 All management pages, including staff account settings, share the dashboard's sidebar, cards, forms, and responsive layout. A compact Menu button opens the sidebar on phones. Sidebar links can open a dashboard section directly, for example `/staff?tab=inventory`. Venue preferences and booking schedules keep separate save controls.
 
-The staff sidebar groups daily operations and finance, with venue settings below and account settings in the profile link. Page titles use task names, and report explanations are expandable. Venue settings has six tabs that preserve drafts; saving reveals any invalid field's tab. Booking finance separates the monthly summary from the daily ledger (`?view=daily`), with exports matched to the selected view. On phones, adding a product reveals a cart shortcut. These presentation changes require no database migration.
+The staff sidebar groups courts, front desk, finance, and administration. The overview combines register controls, payment reviews, court schedules, and recent transactions. Memberships shows pending reviews, active members, and history together, with separate pagination for each section. Booking finance separates the monthly summary from the daily ledger (`?view=daily`), with exports matched to the selected view. On phones, adding a product reveals a cart shortcut.
+
+Staff notifications link to the relevant booking, membership, or account. Pickup orders hold available stock for 24 hours and use the cashier checkout when collected. Public product cards use this venue's active inventory and product photos. Membership plans require this venue's saved terms, and court and open-play discounts begin disabled. Staff can save both discount rules together. Walk-ins can use a verified customer account to apply eligible member pricing or use the guest form.
 
 Management routes share a persistent workspace layout and one skeleton system. Initial page loads and server-backed date/report refreshes show placeholders matched to overview, POS, reservations, inventory, transactions, reports, calendar, venue settings (including courts), or account settings. Local tab switches use data already loaded and remain immediate. Skeleton animation respects reduced-motion preferences; route URLs and access checks are unchanged.
 
@@ -29,7 +34,7 @@ The provided public Supabase connection is in the Git-ignored `.env.local`. `.en
 
 The publishable key cannot create tables or assign privileged users. A project owner must perform these setup steps in the new Supabase project:
 
-1. Open **SQL Editor** for project `glipsgajkrlbcngtkstt` and run **`supabase/setup.sql` once on a fresh database**. This file bundles migrations 001–015. Do not run it on Ascent or rerun it after setup. For subsequent updates, apply only new migration files in order.
+1. Open **SQL Editor** for project `glipsgajkrlbcngtkstt` and run **`supabase/setup.sql` once on a fresh database**. This file bundles the full migration history. For an existing database, follow the upgrade steps below.
 2. In **Authentication → URL Configuration**, use `http://localhost:3001` for local Site URL and allow `http://localhost:3001/auth/callback**`. Add the actual production origin/callback before deployment. The app uses PKCE and supports verified email signup, sign-in, recovery, and password changes.
 3. Create and verify the owner's account through `/login`. Edit the email placeholder in **`supabase/bootstrap-owner.sql`**, then run that script in SQL Editor. Never assign staff roles from the browser.
 4. Sign in and visit `/admin/settings`. Set the venue details, final rates and hours, GCash recipient name, QR image, hold duration, and cancellation policy. Enable online reservations only after these details are correct.
@@ -66,7 +71,13 @@ For an existing database at migration 013, run only **`supabase/migrations/20261
 
 Court rows include a Delete action with confirmation for unused courts. Booking or block history always prevents deletion; deactivate those courts instead. Active courts cannot be deleted during upcoming shared open play or when they are the last active court and online reservations are enabled. Deleted IDs are never reused. Existing databases at migration 014 must apply **`supabase/migrations/202611070015_court_deletion.sql`** once to enable deletion. This update creates the deletion function without deleting any existing courts; do not rerun `setup.sql` on an existing database.
 
-Whole-hour booking slots remain in this release. Rental fees are supported; tracking individual paddle assets/returns and memberships is outside this first release. Product catalogue and booking queries have explicit safety limits; high-volume reporting requires paginated server reports.
+## Supabase upgrade — existing database
+
+1. Confirm the database is the client's PickleballPOS project. If court management is installed and court deletion is pending, start with `202611070015_court_deletion.sql`.
+2. Apply `202611080000_pos_compatibility.sql`, then the files beginning with `202611090016_paddle_stack.sql` through `202611190048_save_membership_discounts_together.sql` in filename order. The repository intentionally skips 040. An existing database at 041 needs only the seven files from `202611170042_staff_notifications.sql` through 048.
+3. Deploy the matching app version. Verify cashier shifts and assignments, booking payment review, Paddle Stack, and the finance workbooks in the workspace. Enter and publish this venue’s membership prices and benefits from Venue settings. Enable and configure court discounts there if the venue offers them.
+
+The compatibility migration preserves existing sale numbers and keeps past payments in the ledger. It also makes cashier booking lookups use a restricted database function. The newer migrations add expenses, account roles and cashier assignments, open-play scoring and rotation, membership billing and booking discounts, and inventory photos.
 
 ## Checks
 
@@ -76,7 +87,7 @@ npm test
 npm run build
 ```
 
-Tests execute against isolated PGlite databases, never the hosted Supabase project. Original booking regression fixtures are pinned to migrations 001–012; the integrated POS tests apply **all** migrations, including 013, and exercise transaction rollback, permissions, payment-reference reuse, deposit/balance accounting, full refunds, stock restoration and drawer reconciliation.
+Tests execute against isolated PGlite databases. Original booking regression fixtures are pinned to migrations 001–012. Integrated tests apply the complete migration history and cover legacy deposits, checkout and refund accounting, cashier access, Paddle Stack, inventory photos, and memberships.
 
 Manual browser QA covers landing, phone layouts, a retail cash checkout/receipt, GCash payment verification, and booking balance collection in presentation mode. Live authentication, hosted RLS behavior, actual transfers, printer hardware, and restore procedures still need a staging acceptance run after Supabase setup.
 

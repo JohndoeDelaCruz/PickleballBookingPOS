@@ -18,6 +18,9 @@ export const deleteCourtSchema = z.object({
 export function activeCourts(courts: Court[] = defaultCourts) {
   return courts.filter((court) => court.active);
 }
+export function courtPhoto() {
+  return "/images/rally-courts-v2.webp";
+}
 export function courtName(courts: Court[] | undefined, id: number | null) {
   return courts?.find((court) => court.id === id)?.name ?? `Court ${id}`;
 }

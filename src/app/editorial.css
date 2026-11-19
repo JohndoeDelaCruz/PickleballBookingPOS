@@ -8,6 +8,24 @@
   --accent: #ff693d;
   --header-height: 88px;
 }
+.editorial-counter {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 380px);
+  align-items: center;
+  gap: 28px;
+  padding-block: clamp(32px, 6vw, 72px);
+}
+.editorial-counter h2 {
+  font-size: clamp(28px, 4vw, 48px);
+  line-height: 1.15;
+  margin: 0 0 18px;
+}
+@media (max-width: 650px) {
+  .editorial-counter {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+}
 body {
   background: var(--cream);
   color: var(--ink);

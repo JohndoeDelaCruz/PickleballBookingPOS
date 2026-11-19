@@ -1,4 +1,5 @@
 import { authRedirect } from "./redirect";
+import { readStaffMembership } from "./session-access";
 
 export type AuthCallbackClient = {
   auth: {
@@ -7,7 +8,7 @@ export type AuthCallbackClient = {
       options?: { flowId?: string },
     ) => PromiseLike<{ error: unknown }>;
   };
-  rpc: (name: "is_club_staff") => PromiseLike<{ data: unknown; error: unknown }>;
+  rpc: (name: "is_club_staff" | "is_staff") => PromiseLike<{ data: unknown; error: unknown }>;
 };
 
 export async function authCallbackDestination(
@@ -28,9 +29,7 @@ export async function authCallbackDestination(
   }
 
   try {
-    const { data: staff, error } = await client.rpc("is_club_staff");
-    if (error) return "/login?error=access";
-    return authRedirect(params.get("next"), staff === true);
+    return authRedirect(params.get("next"), await readStaffMembership(client));
   } catch {
     return "/login?error=access";
   }

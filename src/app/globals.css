@@ -1653,67 +1653,36 @@ img {
   color: var(--muted);
   line-height: 1.9;
 }
+.membership-home {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 24px;
+  padding: clamp(24px, 4vw, 48px);
+  margin-top: clamp(36px, 6vw, 80px);
+  background: var(--green);
+  color: var(--cream);
+  overflow-wrap: anywhere;
+}
+.membership-home h2 {
+  font-size: clamp(24px, 3vw, 36px);
+  line-height: 1.2;
+  margin: 0 0 16px;
+}
+.membership-home-plans {
+  display: grid;
+  gap: 12px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.membership-home-plans p {
+  margin: 4px 0 0;
+}
 .membership-page,
 .rules-page {
   padding-bottom: 72px;
-}
-.membership-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 330px;
-  align-items: start;
-  gap: 28px;
-}
-.membership-section-title {
-  font-family: var(--font-body), Arial, sans-serif;
-  font-size: 25px;
-  line-height: 1.3;
-  margin-bottom: 22px;
-}
-.membership-benefits {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px;
-}
-.membership-benefit > svg {
-  color: #66823e;
-  margin-bottom: 18px;
-}
-.membership-benefit h3 {
-  font-size: 19px;
-  line-height: 1.4;
-}
-.membership-benefit p {
-  margin-bottom: 0;
-  color: var(--muted);
-}
-.membership-join {
-  position: sticky;
-  top: calc(var(--header-height) + 24px);
-  background: var(--green);
-  color: var(--cream);
-}
-.membership-price {
-  margin: 16px 0;
-  font-size: 56px;
-  font-weight: 700;
-  line-height: 1.2;
-}
-.membership-price span {
-  font-size: 17px;
-  font-weight: 400;
-  margin-left: 8px;
-}
-.membership-join > .button {
-  width: 100%;
-}
-.membership-join .membership-contact-note {
-  font-size: 14px;
-  color: #e4ebd7;
-  margin: 18px 0;
-}
-.membership-signoff {
-  margin-top: 36px;
-  text-align: center;
 }
 .rules-layout {
   display: grid;
@@ -1773,14 +1742,6 @@ img {
   margin-bottom: 22px;
 }
 @media (max-width: 1000px) {
-  .membership-layout {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .membership-join {
-    position: static;
-    max-width: 100%;
-    grid-row: 1;
-  }
 }
 @media (max-width: 650px) {
   .membership-benefits,
@@ -2749,4 +2710,304 @@ img {
     animation: none !important;
     transition: none !important;
   }
+}
+
+/* Membership, table pagination, and dialog styles for the shared workspace. */
+.booking-list-pagination {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+}
+.booking-list-item h2 {
+  margin: 0 0 8px;
+  font-size: 16px;
+}
+.table-pagination,
+.table-pagination-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.table-pagination {
+  justify-content: space-between;
+  padding: 14px clamp(12px, 2vw, 22px);
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 14px;
+}
+.schedule-table tr[hidden] {
+  display: none !important;
+}
+@media screen and (prefers-reduced-motion: no-preference) {
+  .modal,
+  .console-modal {
+    animation: modal-pop-in 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .modal[data-closing],
+  .console-modal[data-closing] {
+    animation: modal-pop-out 180ms ease-in both;
+  }
+  .modal::backdrop,
+  .console-modal-backdrop {
+    animation: modal-backdrop-in 240ms ease-out both;
+  }
+  .modal[data-closing]::backdrop,
+  .console-modal-backdrop[data-closing] {
+    animation: modal-backdrop-out 180ms ease-in both;
+  }
+  @keyframes modal-pop-in {
+    from { opacity: 0; transform: translateY(8px) scale(0.96); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @keyframes modal-pop-out {
+    from { opacity: 1; transform: translateY(0) scale(1); }
+    to { opacity: 0; transform: translateY(6px) scale(0.97); }
+  }
+  @keyframes modal-backdrop-in {
+    from { background-color: transparent; backdrop-filter: blur(0); }
+  }
+  @keyframes modal-backdrop-out {
+    to { background-color: transparent; backdrop-filter: blur(0); }
+  }
+}
+.membership-page,
+.rules-page {
+  padding-bottom: 72px;
+}
+.membership-page {
+  overflow-wrap: anywhere;
+}
+.membership-page .page-heading > .text-link {
+  margin-top: 12px;
+}
+.membership-layout {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+}
+.membership-plan-benefits {
+  scroll-margin-top: calc(var(--header-height) + 24px);
+}
+.membership-section-title {
+  font-family: var(--font-body), Arial, sans-serif;
+  font-size: 25px;
+  line-height: 1.3;
+  margin: 8px 0;
+}
+.membership-benefits {
+  display: grid;
+  gap: 10px;
+}
+.membership-benefit {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px;
+  padding: 16px;
+}
+.membership-benefit > svg {
+  color: #66823e;
+  margin-top: 2px;
+}
+.membership-benefit h3 {
+  font-size: 16px;
+  line-height: 1.4;
+}
+.membership-benefit p {
+  margin-bottom: 0;
+  color: var(--muted);
+}
+.membership-join {
+  display: flex;
+  flex-direction: column;
+  background: var(--green);
+  color: var(--cream);
+}
+.membership-join > .eyebrow {
+  font-family: var(--font-body), Arial, sans-serif;
+  text-transform: uppercase;
+}
+.membership-join .text-link {
+  color: var(--cream);
+}
+.membership-price {
+  margin: 16px 0;
+  font-size: clamp(36px, 5vw, 56px);
+  font-weight: 700;
+  line-height: 1.2;
+}
+.membership-price span {
+  font-size: 17px;
+  font-weight: 400;
+  margin-left: 8px;
+}
+.membership-plan-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: auto;
+}
+.membership-contact-note {
+  font-size: 14px;
+  color: var(--muted);
+  margin: 18px 0;
+}
+.membership-page > .membership-contact-note {
+  margin-bottom: 32px;
+}
+.membership-apply-page {
+  max-width: 620px;
+  padding-bottom: 64px;
+}
+.membership-apply-page > .panel + .panel {
+  margin-top: 20px;
+}
+.account-page > .membership-account-status {
+  margin-bottom: 20px;
+}
+.membership-apply-page .qr-image {
+  max-width: min(230px, 100%);
+}
+.membership-open-qr {
+  display: table;
+  margin-bottom: 16px;
+}
+.membership-account-status h2,
+.membership-apply-page .panel h2 {
+  font-family: var(--font-body), Arial, sans-serif;
+  font-size: 20px;
+}
+.membership-status-heading {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.membership-payment-details {
+  display: grid;
+  gap: 10px;
+  margin-block: 16px;
+}
+.membership-payment-details > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+  gap: 12px;
+}
+.membership-payment-details dt {
+  color: var(--muted);
+}
+.membership-payment-details dd {
+  margin: 0;
+  text-align: right;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.membership-customer-results {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.console-button.membership-customer-result {
+  display: grid;
+  justify-items: start;
+  gap: 2px;
+  width: 100%;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+.membership-customer-result small {
+  color: var(--muted);
+}
+@media (max-width: 650px) {
+  .membership-layout,
+  .rules-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .membership-page,
+  .rules-page {
+    padding-bottom: 48px;
+  }
+}
+@media (max-width: 650px) {
+  .booking-list-item h2 {
+    font-size: 14px;
+  }
+}
+
+.court-column-photo {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  max-height: 160px;
+  overflow: hidden;
+  border-radius: 6px;
+  background: var(--line);
+}
+.court-column-photo img {
+  object-fit: cover;
+  object-position: center;
+}
+
+.pickup-page {
+  max-width: 780px;
+  padding-bottom: 64px;
+}
+.pickup-product {
+  display: grid;
+  grid-template-areas: "details" "options";
+  align-items: start;
+  gap: 14px 24px;
+}
+.pickup-product:has(.pickup-photo) {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  grid-template-rows: auto 1fr;
+  grid-template-areas: "photo details" "photo options";
+}
+.pickup-photo {
+  grid-area: photo;
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  background: var(--cream);
+  overflow: hidden;
+}
+.pickup-photo img { object-fit: contain; }
+.pickup-details { grid-area: details; }
+.pickup-options { grid-area: options; }
+.pickup-details h2,
+.pickup-confirmation h2 {
+  margin: 0 0 12px;
+  font-family: var(--font-body), Arial, sans-serif;
+  font-size: clamp(24px, 4vw, 34px);
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+.pickup-details > p { color: var(--muted); margin: 0 0 4px; }
+.pickup-options > p { color: var(--muted); margin: 0 0 12px; }
+.pickup-form { display: grid; gap: 14px; margin-top: 18px; }
+.pickup-total {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  background: #edf1e5;
+  padding: 12px;
+  border-radius: 8px;
+}
+.pickup-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+.pickup-history { display: grid; gap: 10px; }
+.pickup-history a { display: grid; gap: 5px; }
+@media (max-width: 650px) {
+  .pickup-product:has(.pickup-photo) {
+    grid-template-columns: 80px minmax(0, 1fr);
+    grid-template-areas: "photo details" "options options";
+    align-items: center;
+    column-gap: 14px;
+  }
+  .pickup-details h2 { margin-bottom: 4px; }
 }

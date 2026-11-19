@@ -16,6 +16,7 @@ import {
 } from "@/lib/schedule";
 import type { VenueSettings } from "@/lib/types";
 import { TypedSettingField } from "./typed-setting-field";
+import { TablePagination, useTablePage } from "./table-pagination";
 
 export function ScheduleEditor({ initial }: { initial: VenueSettings }) {
   const router = useRouter();
@@ -32,6 +33,7 @@ export function ScheduleEditor({ initial }: { initial: VenueSettings }) {
   const ready = "schedule_config" in initial;
   const period = config.overrides.find((p) => p.id === active);
   const blocks = period?.blocks ?? config.weekly;
+  const blockPages = useTablePage(blocks.length, active);
   const dirty =
     JSON.stringify(config) !== JSON.stringify(saved ?? legacySchedule(initial));
   function change(next: ScheduleConfig) {
@@ -115,12 +117,22 @@ export function ScheduleEditor({ initial }: { initial: VenueSettings }) {
     });
   }
   return (
-    <form className="panel schedule-editor" onSubmit={submit}>
+    <form className="panel schedule-editor" onSubmit={submit} onInvalid={(event) => {
+      const input = event.target;
+      if (!(input instanceof HTMLInputElement) || !input.closest("tr[hidden]")) return;
+      event.preventDefault();
+      if (input !== event.currentTarget.querySelector("input:invalid, select:invalid")) return;
+      const row = input.closest("tr") as HTMLTableRowElement;
+      blockPages.onPageChange(Math.floor(row.sectionRowIndex / blockPages.pageSize) + 1);
+      setError(input.validationMessage);
+      requestAnimationFrame(() => input.focus());
+    }}>
       <div className="schedule-editor-heading">
         <div>
-          <h2>Hours & rates</h2>
+          <h2>Booking schedule</h2>
           <p className="small-print">
-            Set private-court and open-play sessions. Unscheduled hours are closed.
+            Set private-booking hours and open-play sessions. Hours without a
+            time block are closed.
           </p>
         </div>
         <span className="schedule-draft-status">
@@ -215,7 +227,7 @@ export function ScheduleEditor({ initial }: { initial: VenueSettings }) {
             within their date ranges.
           </p>
         )}
-        <table className="schedule-table">
+        <table id="schedule-block-table" className="schedule-table" tabIndex={-1}>
           <caption className="sr-only">
             Editable {period ? "temporary" : "weekly"} booking time blocks
           </caption>
@@ -238,7 +250,7 @@ export function ScheduleEditor({ initial }: { initial: VenueSettings }) {
           </thead>
           <tbody>
             {blocks.map((block, index) => (
-              <tr key={block.id}>
+              <tr key={block.id} hidden={index < blockPages.start || index >= blockPages.end}>
                 <td className="schedule-days-cell">
                   <fieldset className="schedule-day-picker">
                     <legend>Days · block {index + 1}</legend>
@@ -368,6 +380,7 @@ export function ScheduleEditor({ initial }: { initial: VenueSettings }) {
             ))}
           </tbody>
         </table>
+        <TablePagination {...blockPages} label="Schedule block pages" anchorId="schedule-block-table" />
         {!blocks.length && (
           <div className="notice">
             No time blocks.{" "}
@@ -380,7 +393,7 @@ export function ScheduleEditor({ initial }: { initial: VenueSettings }) {
             type="button"
             className="button button-outline button-small"
             disabled={blocks.length >= 100}
-            onClick={() =>
+            onClick={() => {
               updateBlocks([
                 ...blocks,
                 {
@@ -392,8 +405,9 @@ export function ScheduleEditor({ initial }: { initial: VenueSettings }) {
                   rate: initial.hourly_rate ?? 100,
                   capacity: initial.private_court_capacity,
                 },
-              ])
-            }
+              ]);
+              blockPages.onPageChange(Math.floor(blocks.length / blockPages.pageSize) + 1);
+            }}
           >
             <Plus size={16} /> Add time block
           </button>

@@ -1,8 +1,11 @@
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowDown, ArrowUpRight } from "lucide-react";
-import { getVenue } from "@/lib/data";
-import { formatHour } from "@/lib/booking";
+import { getMembershipPlans, getVenue } from "@/lib/data";
+import { formatHour, money } from "@/lib/booking";
+import { isPublishedMembershipPlan } from "@/lib/membership";
+import { getCounterProducts } from "@/lib/counter-products";
+import { CounterProductCard } from "@/components/counter-product-card";
 import { LandingMotion } from "@/components/landing-motion";
 import {
   ClubMarquee,
@@ -12,7 +15,10 @@ import {
 } from "@/components/editorial-interactions";
 
 export default async function Home() {
-  const { venue, ready } = await getVenue();
+  const [{ venue, ready }, membershipPlans, products] = await Promise.all([
+    getVenue(), getMembershipPlans(), getCounterProducts(),
+  ]);
+  const publishedPlans = membershipPlans.filter(isPublishedMembershipPlan);
   return (
     <LandingMotion>
       <section className="editorial-opening" aria-labelledby="editorial-title">
@@ -119,6 +125,33 @@ export default async function Home() {
           </div>
         </div>
       </section>
+      {publishedPlans.length > 0 && (
+        <section className="container membership-home" aria-labelledby="membership-home-title" data-slide="up">
+          <div>
+            <h2 id="membership-home-title">Membership plans</h2>
+            <ul className="membership-home-plans">
+              {publishedPlans.map(({ id, details }) => (
+                <li key={id}>
+                  <strong>{details.plan_name} · {money(details.price_cents / 100)} / {details.price_period}</strong>
+                  <p>{details.home_summary}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <Link href="/membership" className="button button-lime">
+            View membership benefits <ArrowUpRight size={18} />
+          </Link>
+        </section>
+      )}
+      {products.length > 0 && (
+        <section className="container editorial-counter" aria-labelledby="counter-heading">
+          <div>
+            <h2 id="counter-heading">At the counter</h2>
+            <Link href="/order" className="text-link">My pickup orders <ArrowUpRight size={18} /></Link>
+          </div>
+          <CounterProductCard products={products} />
+        </section>
+      )}
       <CourtsideJournal />
       <section className="club-finish" id="visit">
         <div className="finish-topline">

@@ -12,8 +12,9 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, staff } = await getSession();
+  const { user, staff, offDuty } = await getSession();
   if (!user) redirect("/login?next=/admin");
+  if (offDuty) redirect("/my-bookings");
   if (!staff)
     return (
       <main
@@ -25,7 +26,7 @@ export default async function AdminLayout({
           <ShieldCheck />
           <h2>Staff access only.</h2>
           <p>
-            This dashboard is available to authorized Rally staff. If you
+            This dashboard is available to authorized venue staff. If you
             manage the venue, ask the account owner to give your account staff
             access.
           </p>

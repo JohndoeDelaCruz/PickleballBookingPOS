@@ -10,6 +10,12 @@ import { balancePaymentSchema } from "@/lib/payment";
 import { venueSettingPatch } from "@/lib/venue-setting";
 import { scheduleConfigSchema } from "@/lib/schedule";
 import { courtSchema, deleteCourtSchema, type Court } from "@/lib/courts";
+import {
+  bookingError,
+  requestCustomerBooking,
+  type CustomerBookingAction,
+  type CustomerBookingResult,
+} from "@/lib/customer-request";
 
 export async function deleteCourt(input: unknown): Promise<{ deletedId?: number; error?: string }> {
   const parsed = deleteCourtSchema.safeParse(input);
@@ -45,13 +51,6 @@ export async function saveCourt(input: unknown): Promise<{ court?: Court; error?
     return { court: data as Court };
   } catch (error) { return { error: (error as Error).message }; }
 }
-import {
-  bookingError,
-  requestCustomerBooking,
-  type CustomerBookingAction,
-  type CustomerBookingResult,
-} from "@/lib/customer-request";
-
 async function customerRequest(
   action: CustomerBookingAction,
   input: unknown,
@@ -85,7 +84,7 @@ export async function reserveCourt(input: unknown) {
   );
   if (result.error) return result;
   revalidatePath("/book");
-  revalidatePath("/my-bookings");
+  revalidatePath("/my-bookings/all");
   revalidatePath("/admin/finance");
   return result;
 }
@@ -101,7 +100,7 @@ export async function reserveOpenPlay(input: unknown, walkIn = false) {
     if (result.error) return result;
     revalidatePath("/book");
     revalidatePath("/admin");
-    revalidatePath("/my-bookings");
+    revalidatePath("/my-bookings/all");
     revalidatePath("/admin/finance");
     return result;
   }
@@ -134,7 +133,7 @@ export async function reserveOpenPlay(input: unknown, walkIn = false) {
     if (error) return { error: bookingError(error) };
     revalidatePath("/book");
     revalidatePath("/admin");
-    revalidatePath("/my-bookings");
+    revalidatePath("/my-bookings/all");
     revalidatePath("/admin/finance");
     return { id: data as string };
   } catch (error) {
@@ -162,7 +161,7 @@ export async function submitPayment(bookingId: string, reference: string) {
   );
   if (result.error) return result;
   revalidatePath(`/booking/${bookingId}`);
-  revalidatePath("/my-bookings");
+  revalidatePath("/my-bookings/all");
   revalidatePath("/admin/finance");
   return result;
 }
@@ -175,7 +174,7 @@ export async function cancelBooking(bookingId: string) {
     parsed.success ? undefined : "Choose a valid reservation.",
   );
   if (result.error) return result;
-  revalidatePath("/my-bookings");
+  revalidatePath("/my-bookings/all");
   revalidatePath(`/booking/${bookingId}`);
   revalidatePath("/admin/finance");
   return result;
@@ -289,7 +288,8 @@ export async function staffSetStatus(
     });
     if (error) return { error: bookingError(error) };
     revalidatePath("/admin");
-    revalidatePath("/my-bookings");
+    revalidatePath("/staff");
+    revalidatePath("/my-bookings/all");
     revalidatePath(`/booking/${id}`);
     revalidatePath("/admin/finance");
     return { success: true };
@@ -354,7 +354,7 @@ export async function staffRecordBalance(input: unknown) {
     if (error) return { error: bookingError(error) };
     revalidatePath("/admin");
     revalidatePath("/admin/finance");
-    revalidatePath("/my-bookings");
+    revalidatePath("/my-bookings/all");
     revalidatePath(`/booking/${p.booking_id}`);
     return { success: true };
   } catch (error) {

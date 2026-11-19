@@ -1,0 +1,75 @@
+.calendar :global(.workspace-page-heading) { margin-bottom: 16px; }
+.dayBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin-bottom: 10px;
+}
+.dayBar h2 { margin: 0; font-size: 16px; font-weight: 650; }
+.dayBar > div > span { color: var(--console-muted); font-size: 13px; }
+.override {
+  margin: 0 0 12px;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: #eff4e9;
+  color: #405d4b;
+  font-size: 13px;
+}
+.schedule { overflow-x: auto; }
+.table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.timeColumn { width: clamp(62px, 9vw, 100px); }
+.table :is(th, td) {
+  padding: 8px clamp(6px, 1.3vw, 14px);
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+.table :is(th, td) + :is(th, td) { border-inline-start: 1px solid var(--line); }
+.table thead th { background: #ecf2e9; font-size: 13px; font-weight: 650; }
+.table thead small { display: block; color: var(--console-muted); }
+.table tbody :is(th, td) { border-top: 1px solid var(--line); }
+.table tbody th { color: var(--console-muted); font-size: 12px; font-weight: 550; }
+.emptySlot {
+  display: flex;
+  align-items: center;
+  min-height: 31px;
+  color: var(--console-muted);
+  font-size: 13px;
+}
+.slot {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 10px;
+  padding: 6px 9px;
+  border-radius: 5px;
+  color: var(--console-ink);
+  font-size: 13px;
+}
+.slot strong { display: block; font-weight: 650; }
+.slot small { display: block; color: var(--console-muted); font-size: 12px; }
+.slot:is(a) { display: block; }
+.slot:is(a):hover strong { text-decoration: underline; }
+.confirmed { background: #e8f2e6; }
+.pending { background: #fbf3e3; }
+.openPlay { background: #eef3e7; }
+.blocked { background: #f2efeb; }
+.release {
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: #72432e;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.capacity { display: grid; gap: 2px; }
+.footer { display: flex; justify-content: flex-end; margin-top: 13px; }
+@media (pointer: coarse) {
+  .release { min-height: 44px; }
+}

@@ -14,9 +14,14 @@
 .search { width: min(360px, 100%); height: 44px; border-radius: 6px; }
 .panelBody { display: grid; gap: 22px; padding: 22px; min-width: 0; }
 .stack { display: grid; gap: 24px; min-width: 0; }
-.timeline { display: flex; align-items: center; gap: 14px; min-height: 63px; }
-.square { width: 34px; height: 40px; flex: none; }
-.session { flex: 1; height: 36px; }
+.overview .metric { min-height: 90px; }
+.overview .value { height: 23px; margin-block: 6px; }
+.overview .panelBody { padding: 12px 14px; gap: 12px; }
+.registerRow { display: flex; align-items: center; gap: 10px; padding: 10px 14px; }
+.registerAction { width: 76px; height: 32px; flex: none; margin-inline-start: auto; }
+.timeline { display: flex; align-items: center; gap: 10px; }
+.square { width: 32px; height: 32px; flex: none; }
+.session { flex: 2 0 30%; height: 36px; }
 .tableScroll { overflow-x: auto; margin-bottom: 24px; }
 .tableRow { display: grid; grid-template-columns: repeat(var(--skeleton-columns), minmax(90px, 1fr)); gap: 24px; min-width: calc(var(--skeleton-columns) * 114px + 44px); padding: 22px; border-bottom: 1px solid #ebeee5; }
 .tableRow:last-child { border-bottom: 0; }

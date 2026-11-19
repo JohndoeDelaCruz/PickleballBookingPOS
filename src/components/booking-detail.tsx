@@ -17,7 +17,7 @@ import {
   money,
   equipmentBookingLabel,
 } from "@/lib/booking";
-import { statusLabels, type Booking, type VenueSettings } from "@/lib/types";
+import { bookingStatusLabel, type Booking, type VenueSettings } from "@/lib/types";
 import { bookingPayments } from "@/lib/payment";
 
 export function BookingDetail({
@@ -35,6 +35,7 @@ export function BookingDetail({
   const [pending, startTransition] = useTransition();
   const [remaining, setRemaining] = useState<number | null>(null);
   const [downloadError, setDownloadError] = useState(false);
+  const memberDiscount = Number(b.membership_discount_amount ?? 0);
   const router = useRouter();
   useEffect(() => {
     if (!b.hold_expires_at || b.status !== "awaiting_payment") return;
@@ -89,7 +90,7 @@ export function BookingDetail({
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
       anchor.href = url;
-      anchor.download = `rally-gcash-qr.${extensions[blob.type]}`;
+      anchor.download = `gcash-qr.${extensions[blob.type]}`;
       anchor.click();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch {
@@ -117,7 +118,7 @@ export function BookingDetail({
               <h2 style={{ margin: "10px 0 0" }}>{b.reference}</h2>
             </div>
             <span className={`status-badge status-${b.status}`}>
-              {statusLabels[b.status]}
+              {bookingStatusLabel(b)}
             </span>
           </div>
           <dl className="summary-rows">
@@ -150,10 +151,10 @@ export function BookingDetail({
               <dt>Player</dt>
               <dd>{b.customer_name}</dd>
             </div>
-            <div>
+            {b.customer_phone && <div>
               <dt>Mobile</dt>
               <dd>{b.customer_phone}</dd>
-            </div>
+            </div>}
             {b.payment_reference && (
               <div>
                 <dt>GCash reference</dt>
@@ -161,13 +162,16 @@ export function BookingDetail({
               </div>
             )}
           </dl>
-          {b.equipment_rental && (
+          {(b.equipment_rental || memberDiscount > 0) && (
             <dl className="summary-rows equipment-cost-rows">
               <div>
                 <dt>{openPlay ? "Open-play passes" : "Court subtotal"}</dt>
-                <dd>{money(bookingBaseAmount(b))}</dd>
+                <dd>{money(bookingBaseAmount(b) + memberDiscount)}</dd>
               </div>
-              <div>
+              {memberDiscount > 0 && <div>
+                <dt>Membership discount</dt><dd>−{money(memberDiscount)}</dd>
+              </div>}
+              {b.equipment_rental && <div>
                 <dt>
                   Equipment rental
                   <small className="equipment-description">
@@ -175,7 +179,7 @@ export function BookingDetail({
                   </small>
                 </dt>
                 <dd>{money(b.equipment_amount)}</dd>
-              </div>
+              </div>}
             </dl>
           )}
           <div className="summary-total">
@@ -262,7 +266,17 @@ export function BookingDetail({
               </span>
             </div>
           )}
-          {b.status === "cancelled" && (
+          {b.status === "cancelled" && b.payment_rejected_at && (
+            <div className="notice notice-warning">
+              <Info size={18} />
+              <span>
+                <strong>We couldn’t match your GCash reference to a payment.</strong>
+                <br />
+                Your reservation was cancelled and the slot was released. If you sent money, contact the venue with your booking and GCash references before paying again.
+              </span>
+            </div>
+          )}
+          {b.status === "cancelled" && !b.payment_rejected_at && (
             <div className="notice">
               <Info size={18} />
               <span>
@@ -377,7 +391,7 @@ export function BookingDetail({
               <img
                 className="qr-image"
                 src={venue.gcash_qr_url}
-                alt="Rally GCash payment QR"
+                alt="Venue GCash payment QR"
               />
               <button
                 className="text-link"

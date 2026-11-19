@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowUpRight, ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { authRedirect, safeRedirect } from "@/lib/redirect";
+import { readStaffMembership } from "@/lib/session-access";
 import { authCallbackUrl } from "@/lib/site-url";
 import { captchaOptions, captchaTokenSchema, turnstileSiteKey } from "@/lib/captcha";
 import { TurnstileCheck } from "./turnstile-check";
@@ -45,12 +46,15 @@ export function AuthForm({
     try {
       const supabase = createClient();
       async function finishSignIn() {
-        const { data: staff, error } = await supabase.rpc("is_club_staff");
-        if (error)
+        let staff: boolean;
+        try {
+          staff = await readStaffMembership(supabase);
+        } catch {
           throw new Error(
             "You’re signed in, but we couldn’t load your account access. Please try again.",
           );
-        router.replace(authRedirect(next, staff === true));
+        }
+        router.replace(authRedirect(next, staff));
         router.refresh();
       }
       if (mode === "login") {

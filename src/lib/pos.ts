@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { Court } from "./courts";
+import { toCsv, type PaymentMethod } from "./finance";
 
 export type Product = {
   id: string;
@@ -13,6 +14,7 @@ export type Product = {
   reorder_level: number;
   active: boolean;
   revision: number;
+  photo_version?: string | null;
 };
 export type SaleItem = {
   product_id: string | null;
@@ -24,7 +26,7 @@ export type SaleItem = {
 export type Sale = {
   id: string;
   number: string;
-  kind: "retail" | "booking";
+  kind: "retail" | "booking" | "membership";
   booking_id: string | null;
   customer_name: string;
   total_cents: number;
@@ -39,7 +41,7 @@ export type Payment = {
   id: string;
   sale_id: string;
   amount_cents: number;
-  method: "cash" | "gcash";
+  method: PaymentMethod;
   reference: string | null;
   created_at: string;
   shift_id: string | null;
@@ -85,6 +87,22 @@ export type PosBooking = {
   payment_reference: string | null;
   payment_option: string;
 };
+export type PosPaymentReview = PosBooking & {
+  payment_submitted_at: string | null;
+  overdue: boolean;
+};
+export type OverviewTrends = {
+  net: number[];
+  reservations: number[];
+  retail: number[];
+  balances: number[];
+};
+export type OverviewOpenPlaySession = {
+  start: number;
+  end: number;
+  players: number;
+  capacity: number | null;
+};
 export type PosData = {
   courts?: Court[];
   products: Product[];
@@ -94,6 +112,9 @@ export type PosData = {
   shifts: Shift[];
   movements: Movement[];
   bookings: PosBooking[];
+  paymentReviews?: PosPaymentReview[];
+  overviewTrends?: OverviewTrends;
+  openPlaySessions?: OverviewOpenPlaySession[];
   role: string;
   ready: boolean;
   error?: string;
@@ -144,6 +165,9 @@ export function reportFor(data: PosData, day: string) {
     collected,
     refunded,
     net: collected - refunded,
+    other: payments
+      .filter((p) => p.method !== "cash" && p.method !== "gcash")
+      .reduce((s, p) => s + p.amount_cents, 0),
     cash:
       payments
         .filter((p) => p.method === "cash")
@@ -171,6 +195,22 @@ export function reportFor(data: PosData, day: string) {
         0,
       ),
   };
+}
+export function collectionsCsv(data: PosData, day: string) {
+  const sales = new Map(data.sales.map((sale) => [sale.id, sale]));
+  const entries = [
+    ...data.payments.map((payment) => ({ ...payment, type: "Payment", reference: payment.reference ?? "" })),
+    ...data.refunds.map((refund) => ({ ...refund, type: "Refund", reference: "", amount_cents: -refund.amount_cents })),
+  ].filter((entry) => dayKey(entry.created_at) === day)
+    .sort((a, b) => Date.parse(a.created_at) - Date.parse(b.created_at));
+  return toCsv([
+    ["Date (PHT)", "Sale", "Customer", "Type", "Payment method", "Reference", "Amount (PHP)"],
+    ...entries.map((entry) => [
+      day, sales.get(entry.sale_id)?.number ?? entry.sale_id,
+      sales.get(entry.sale_id)?.customer_name ?? "", entry.type,
+      entry.method, entry.reference, entry.amount_cents / 100,
+    ]),
+  ]);
 }
 export const productSchema = z.object({
   id: z.uuid().optional(),

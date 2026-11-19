@@ -647,6 +647,28 @@
   background: #efefed;
   color: #596951;
 }
+.payment-review-tabs {
+  padding: 0 20px 12px;
+}
+.payment-review-notice {
+  margin: 0 20px 14px;
+  padding: 10px 12px;
+  background: #f6efdb;
+  border-radius: 5px;
+  font-size: 14px;
+}
+.review-overdue,
+.attention-row .review-overdue {
+  color: #7d3b14;
+}
+.console-button.reject-payment-button {
+  background: #8e3030;
+  border-color: #8e3030;
+  color: #fff;
+}
+.console-button.reject-payment-button:hover {
+  background: #702323;
+}
 .row-actions {
   display: flex;
   align-items: center;
@@ -778,6 +800,61 @@
   height: 130px;
   width: 160px;
   max-width: 100%;
+}
+.product-tile-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #fff;
+}
+.inventory-product,
+.product-photo-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.product-thumbnail {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #edf1e8;
+  color: var(--muted);
+}
+.product-thumbnail > img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #fff;
+}
+.product-photo-field {
+  margin: 12px 0;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.product-photo-field .product-thumbnail {
+  width: 60px;
+  height: 60px;
+}
+.product-photo-field small {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+}
+.console-modal .product-photo-field input[hidden] {
+  display: none;
+}
+.product-photo-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin-top: 5px;
 }
 .product-art-snacks {
   background: #f0e8dd;
@@ -1299,7 +1376,8 @@
   margin: 16px 0;
 }
 .console-modal input:not([type="checkbox"]),
-.console-modal select {
+.console-modal select,
+.console-modal textarea {
   display: block;
   width: 100%;
   border: 1px solid #dce5d1;
@@ -1313,8 +1391,13 @@
   outline-offset: 2px;
 }
 .console-modal input:focus,
-.console-modal select:focus {
+.console-modal select:focus,
+.console-modal textarea:focus {
   outline: 2px solid #b5c99a;
+}
+.console-modal textarea {
+  font-family: inherit;
+  resize: vertical;
 }
 .console-modal p {
   font-size: 14px;
@@ -1855,9 +1938,6 @@
   }
   .review-panel {
     display: block;
-  }
-  .attention-row {
-    padding: 17px 16px 0 !important;
   }
   .attention-row strong {
     font-size: 14px;

@@ -30,9 +30,9 @@ export default async function BookingPage({
   return (
     <main id="main" className="container content-page">
       <div className="page-heading">
-        <Link href="/my-bookings" className="breadcrumb">
+        <Link href="/my-bookings/all" className="breadcrumb">
           <ArrowLeft size={13} />
-          My bookings
+          All bookings
         </Link>
         <span className="eyebrow">ONE STEP CLOSER TO GAME ON</span>
         <h1>YOUR RESERVATION.</h1>

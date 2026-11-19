@@ -71,7 +71,8 @@ export function ChangePasswordForm() {
       <div>
         <h2 className="form-section-title">Change password</h2>
         <p className="small-print" id="password-requirements">
-          Use at least 8 characters for your new password.
+          Confirm your current password, then choose a new password with at
+          least 8 characters.
         </p>
       </div>
       <fieldset disabled={pending} className="password-fields">

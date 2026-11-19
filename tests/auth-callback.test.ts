@@ -92,7 +92,7 @@ function fixture({
       },
     },
     rpc: async (name) => {
-      assert.equal(name, "is_club_staff");
+      assert.equal(name, accessError && calls.roleChecks > 0 ? "is_staff" : "is_club_staff");
       calls.roleChecks++;
       return {
         data: staff,

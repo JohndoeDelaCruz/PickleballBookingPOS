@@ -12,18 +12,20 @@ import { Modal } from "./modal";
 export function BalancePaymentModal({
   booking,
   onClose,
+  closing,
 }: {
-  booking: Booking;
+  booking: Pick<Booking, "id" | "customer_name" | "reference" | "total_amount" | "paid_amount">;
   onClose: () => void;
+  closing: boolean;
 }) {
   const [method, setMethod] = useState<PaymentMethod>("cash");
   const [reference, setReference] = useState("");
   const [error, setError] = useState("");
   const [pending, startTransition] = useTransition();
   const router = useRouter();
-  const balance = bookingPayments(booking).balance;
+  const balance = bookingPayments({ ...booking, status: "confirmed" }).balance;
   return (
-    <Modal title="Record balance payment" onClose={() => !pending && onClose()}>
+    <Modal title="Record balance payment" closing={closing} onClose={() => !pending && onClose()}>
       <p>
         {booking.customer_name} · {booking.reference}
       </p>
@@ -33,7 +35,7 @@ export function BalancePaymentModal({
       </div>
       <p className="small-print">
         Save only after you have received and checked this payment. This marks
-        the reservation as fully paid.
+        the reservation as fully paid. Cash requires an open register shift once the POS is enabled.
       </p>
       <form
         className="form-stack"

@@ -1,0 +1,36 @@
+.row, .context { display: flex; gap: 12px; align-items: center; }
+.row { min-width: 0; flex-wrap: wrap; padding: 10px 14px; }
+.row > button { flex: none; }
+.rowIcon { display: grid; place-items: center; width: 32px; height: 32px; flex: none; color: var(--green); background: #edf3e8; border-radius: 6px; }
+.compact { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0; }
+.compact .identity { flex: 0 1 auto; }
+.compact .identity p { color: var(--console-muted); font-size: 13px; }
+.icon { display: grid; place-items: center; width: 42px; height: 42px; flex: none; color: var(--green); background: #e9f0df; border: 1px solid #dce6d4; border-radius: 10px; }
+.identity { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.identity h2 { font: 600 15px/1.35 var(--font-body), sans-serif; margin: 0 0 3px; }
+.identity p { margin: 0; color: var(--ink); font-size: 14px; }
+.row .identity { flex-basis: 110px; }
+.row .identity h2 { margin-bottom: 1px; font-size: 14px; }
+.row .identity p { color: var(--console-muted); font-size: 13px; }
+.identity small { display: block; color: var(--muted); font-size: 13px; margin-top: 3px; }
+.identity .saved { color: var(--green); font-weight: 550; }
+.dot { display: inline-block; vertical-align: 2px; width: 7px; height: 7px; border-radius: 50%; margin-right: 8px; background: #88918a; }
+.active { background: #467748; }
+.form { display: grid; gap: 16px; }
+.form p { margin: 0; }
+.context { padding: 12px; border: 1px solid var(--line); border-radius: 9px; background: #f7faf6; }
+.note { font-size: 14px; color: var(--muted); }
+.amounts { margin: 0; display: grid; gap: 8px; }
+.amounts div, .variance { display: flex; justify-content: space-between; gap: 10px; font-size: 14px; }
+.amounts dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+.input { position: relative; display: block; }
+.input > span { position: absolute; inset-inline-start: 14px; top: 50%; transform: translateY(-50%); font-weight: 600; color: var(--muted); pointer-events: none; }
+.moneyField .input input { width: 100%; padding-inline-start: 34px; font-size: 21px; font-variant-numeric: tabular-nums; }
+.variance { border-radius: 7px; padding: 10px 12px; background: #edf3e8; color: var(--green); }
+.variance[data-mismatch="true"] { background: #fbf0df; color: #755222; }
+.actions { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; padding-top: 12px; border-top: 1px solid var(--line); }
+.shiftModal { max-height: calc(100dvh - 24px); }
+@media (max-width: 450px) {
+  .row { gap: 8px; }
+  .actions > button { flex: 1 1 auto; }
+}

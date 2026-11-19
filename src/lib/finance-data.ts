@@ -17,18 +17,22 @@ export async function readFinanceMonth(month: string) {
   if (!inventory.loaded) throw new Error("Court details could not be loaded.");
   if (error) throw error;
   if (!data?.length) throw new Error("No finance summary returned.");
-  const breakdown = await client.rpc("get_court_finance_month", { p_month: `${month}-01` });
-  if (breakdown.error) {
-    // Before migration 014, the existing two-court report remains usable.
-    if (!inventory.ready && inventory.courts.every((court) => court.id <= 2) &&
-      (breakdown.error.code === "PGRST202" || breakdown.error.code === "42883")) return data as FinanceDay[];
-    throw breakdown.error;
-  }
   const days = data as FinanceDay[];
-  for (const day of days) day.court_totals = {};
-  for (const row of breakdown.data ?? []) {
-    const day = days.find((day) => day.report_date === row.report_date);
-    if (day) day.court_totals![row.court_id] = { sales: Number(row.sales), hours: Number(row.hours) };
+  const byDate = new Map(days.map((day) => [day.report_date, day]));
+  for (let offset = 0; ; offset += 500) {
+    const breakdown = await client.rpc("get_court_finance_month", { p_month: `${month}-01` })
+      .order("report_date").order("court_id").range(offset, offset + 499);
+    if (breakdown.error) {
+      if (!inventory.ready && offset === 0 && inventory.courts.every((court) => court.id <= 2) &&
+        ["PGRST202", "42883"].includes(breakdown.error.code)) return days;
+      throw breakdown.error;
+    }
+    if (offset === 0) for (const day of days) day.court_totals = {};
+    for (const row of breakdown.data ?? []) {
+      const day = byDate.get(row.report_date);
+      if (day) day.court_totals![row.court_id] = { sales: Number(row.sales), hours: Number(row.hours) };
+    }
+    if (!breakdown.data || breakdown.data.length < 500) break;
   }
   return days;
 }

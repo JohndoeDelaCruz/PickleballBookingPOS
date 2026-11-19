@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { getSession } from "@/lib/data";
+import { getCurrentMembership, getSession } from "@/lib/data";
+import { accountRoleLabels } from "@/lib/account-roles";
 import { ChangePasswordForm } from "@/components/change-password-form";
 import { WorkspacePageHeading } from "@/components/workspace-page-heading";
+import { MembershipStatus } from "@/components/membership-status";
 
 export const metadata: Metadata = {
   title: "Account settings",
@@ -14,6 +16,7 @@ export const metadata: Metadata = {
 export default async function AccountPage() {
   const { user, staff, role } = await getSession();
   if (!user) redirect("/login?next=/account");
+  const application = await getCurrentMembership(user.id);
   if (staff) return (
     <>
       <WorkspacePageHeading title="Account settings" />
@@ -22,8 +25,9 @@ export default async function AccountPage() {
         <aside className="console-panel workspace-account-note">
           <h2>Signed-in account</h2>
           <strong>{user.email}</strong>
-          <span className="status-pill status-ok workspace-account-role">{role ?? "Staff"}</span>
+          <span className="status-pill status-ok workspace-account-role">{role ? accountRoleLabels[role] : "Staff"}</span>
         </aside>
+        {application !== undefined && <MembershipStatus application={application} account />}
       </div>
     </>
   );
@@ -32,10 +36,11 @@ export default async function AccountPage() {
       <div className="page-heading">
         <h1>Account settings</h1>
         <p>{user.email}</p>
-        <Link className="text-link" href={staff ? "/admin" : "/my-bookings"}>
-          <ArrowLeft size={17} /> {staff ? "Back to dashboard" : "Back to my bookings"}
+        <Link className="text-link" href="/my-bookings">
+          <ArrowLeft size={17} /> Back to my bookings
         </Link>
       </div>
+      {application !== undefined && <MembershipStatus application={application} account />}
       <ChangePasswordForm />
     </main>
   );

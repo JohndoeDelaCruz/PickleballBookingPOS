@@ -27,12 +27,14 @@ import { financePageSize } from "@/lib/finance";
 import { statusLabels } from "@/lib/types";
 import { saveBookingFinance, saveFinanceDay } from "@/app/actions";
 import { Modal } from "./modal";
+import { useAnimatedModal } from "./use-animated-modal";
 import { bookingPayments } from "@/lib/payment";
 import { BalancePaymentModal } from "./balance-payment-modal";
 import { defaultCourts, type Court } from "@/lib/courts";
 import { WorkspaceSkeleton } from "./workspace-skeleton";
 import { WorkspacePageHeading } from "./workspace-page-heading";
 import { WorkspaceTabs } from "./workspace-tabs";
+import { TablePagination, useTablePage } from "./table-pagination";
 
 type Period = { month: string; date: string; start: string; end: string };
 export function FinanceDashboard({
@@ -56,13 +58,12 @@ export function FinanceDashboard({
   const params = useSearchParams();
   const view = params.get("view") === "daily" ? "daily" : "month";
   const totals = sumFinance(days);
+  const monthlyRows = useTablePage(days.length, period.month);
   const daily = days.find((d) => d.report_date === period.date)!;
   const paidMethods = (Object.keys(paymentMethods) as PaymentMethod[])
     .filter((method) => Number(daily[`${method}_sales`]) !== 0);
-  const [editing, setEditing] = useState<FinanceBooking | null>(null);
-  const [balanceBooking, setBalanceBooking] = useState<FinanceBooking | null>(
-    null,
-  );
+  const [editing, setEditing, editingClosing] = useAnimatedModal<FinanceBooking>();
+  const [balanceBooking, setBalanceBooking, balanceClosing] = useAnimatedModal<FinanceBooking>();
   const [worker, setWorker] = useState(notes.worker_on_duty);
   const [managerNotes, setManagerNotes] = useState(notes.manager_notes);
   const [error, setError] = useState("");
@@ -102,10 +103,10 @@ export function FinanceDashboard({
           </button>
           <a
             className="button button-dark button-small"
-            href={`/admin/finance/export?month=${period.month}${view === "daily" ? `&date=${period.date}` : ""}`}
+            href={`/admin/finance/export?format=xlsx&month=${period.month}${view === "daily" ? `&date=${period.date}` : ""}`}
             download
           >
-            <Download size={15} /> Export {view === "daily" ? "day" : "month"}
+            <Download size={15} /> Export {view === "daily" ? "day" : "month"} to Excel
           </a>
         </div>
       } />
@@ -184,7 +185,7 @@ export function FinanceDashboard({
         </p>
       </details>
       <section className="panel finance-month-panel">
-        <div className="table-scroll">
+        <div id="finance-month-table" className="table-scroll" tabIndex={-1} role="region" aria-label="Monthly finance table">
           <table className="admin-table finance-month-table">
             <caption className="sr-only">
               Daily totals for {monthLabel(period.month)}
@@ -202,7 +203,7 @@ export function FinanceDashboard({
               </tr>
             </thead>
             <tbody>
-              {days.map((d) => (
+              {days.slice(monthlyRows.start, monthlyRows.end).map((d) => (
                 <tr
                   key={d.report_date}
                   className={
@@ -249,6 +250,7 @@ export function FinanceDashboard({
             </tfoot>
           </table>
         </div>
+        <TablePagination {...monthlyRows} label="Monthly finance pages" anchorId="finance-month-table" />
       </section>
       </div>
       <section id="finance-panel-daily" role="tabpanel" aria-labelledby="finance-tab-daily" hidden={view !== "daily"} tabIndex={0} className="finance-daily-section" aria-label="Daily finance log">
@@ -356,7 +358,7 @@ export function FinanceDashboard({
             <span className="small-print">Visible to staff only.</span>
           </div>
         </form>
-        <section className="panel finance-log-panel">
+        <section id="finance-daily-table" className="panel finance-log-panel">
           <div className="table-scroll">
             <table className="admin-table finance-log-table">
               <caption className="sr-only">
@@ -482,20 +484,9 @@ export function FinanceDashboard({
               {count} {count === 1 ? "reservation" : "reservations"} · Day’s
               collections: <strong>{money(daily.total_sales)}</strong>
             </span>
-            {count > financePageSize && (
-              <div className="finance-actions">
-                {page > 1 && (
-                  <Link href={href(period.date, page - 1)}>Previous</Link>
-                )}
-                <span>
-                  Page {page} of {Math.ceil(count / financePageSize)}
-                </span>
-                {page * financePageSize < count && (
-                  <Link href={href(period.date, page + 1)}>Next</Link>
-                )}
-              </div>
-            )}
           </div>
+          <TablePagination count={count} page={page} pageSize={financePageSize} label="Daily finance pages"
+            href={(nextPage) => `${href(period.date, nextPage)}#finance-daily-table`} />
         </section>
       </section>
       </div>
@@ -503,12 +494,14 @@ export function FinanceDashboard({
         <FinanceBookingEditor
           booking={editing}
           onClose={() => setEditing(null)}
+          closing={editingClosing}
         />
       )}
       {balanceBooking && (
         <BalancePaymentModal
           booking={balanceBooking}
           onClose={() => setBalanceBooking(null)}
+          closing={balanceClosing}
         />
       )}
     </>
@@ -518,9 +511,11 @@ export function FinanceDashboard({
 function FinanceBookingEditor({
   booking: b,
   onClose,
+  closing,
 }: {
   booking: FinanceBooking;
   onClose: () => void;
+  closing: boolean;
 }) {
   const [method, setMethod] = useState<PaymentMethod>(bookingPaymentMethod(b));
   const [notes, setNotes] = useState(b.booking_finance?.notes || "");
@@ -547,6 +542,7 @@ function FinanceBookingEditor({
     <Modal
       title="Payment method & staff notes"
       onClose={() => !pending && onClose()}
+      closing={closing}
     >
       <p className="small-print">
         {b.customer_name} · {b.reference} · {money(b.total_amount)}
