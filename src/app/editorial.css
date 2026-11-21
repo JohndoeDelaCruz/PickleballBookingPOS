@@ -389,6 +389,122 @@ textarea::placeholder {
 .hero-reservation {
   padding-inline: 3.4%;
 }
+.public-schedule {
+  padding: clamp(12px, 2.8vw, 36px);
+  border: 1px solid var(--line);
+  border-top: 0;
+}
+.public-schedule-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: clamp(16px, 2vw, 24px);
+}
+.public-schedule-heading h2 {
+  margin: 0;
+  font-family: var(--font-display), sans-serif;
+  font-size: clamp(24px, 4vw, 40px);
+  font-weight: 400;
+  letter-spacing: -.06em;
+  line-height: 1.16;
+}
+.public-schedule-heading p {
+  margin: 5px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+.public-schedule-link {
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px clamp(12px, 2vw, 22px);
+  min-height: 44px;
+}
+.public-schedule-rows {
+  scroll-margin-top: 12px;
+}
+.public-schedule-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 15px;
+}
+.public-schedule-table th,
+.public-schedule-table td {
+  padding: 12px clamp(6px, 1.5vw, 18px);
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+.public-schedule-table th {
+  color: var(--cream);
+  background: var(--ink);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+.public-schedule-table tbody tr:nth-child(even) {
+  background: rgb(37 37 32 / 3%);
+}
+.public-schedule-table td:nth-child(2) span {
+  white-space: nowrap;
+}
+.public-schedule-table td small {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.public-schedule-table td strong {
+  font-variant-numeric: tabular-nums;
+}
+.public-schedule > details {
+  margin-top: 16px;
+  border-top: 1px solid var(--line);
+}
+.public-schedule summary {
+  min-height: 44px;
+  padding-block: 12px;
+  cursor: pointer;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 600px) {
+  .public-schedule-table {
+    font-size: 13px;
+  }
+  .public-schedule-table th,
+  .public-schedule-table td {
+    padding-block: 9px;
+  }
+}
+@media (max-width: 400px) {
+  .public-schedule-link {
+    width: 100%;
+  }
+  .public-schedule-table {
+    table-layout: fixed;
+    font-size: 12px;
+  }
+  .public-schedule-table th:first-child {
+    width: 21%;
+  }
+  .public-schedule-table th:nth-child(2) {
+    width: 29%;
+  }
+  .public-schedule-table th:nth-child(3) {
+    width: 28%;
+  }
+  .public-schedule-table th,
+  .public-schedule-table td {
+    padding-inline: 5px;
+  }
+  .public-schedule-table td small {
+    font-size: 11px;
+  }
+}
 @media (max-width: 600px) {
   .club-hero {
     min-height: calc(620px + var(--header-height));
@@ -443,89 +559,6 @@ textarea::placeholder {
   .hero-image {
     will-change: auto;
   }
-}
-.reservation-launcher {
-  display: grid;
-  grid-template-columns: 1.25fr 1fr 1fr 1.2fr;
-  align-items: stretch;
-  border: 1px solid var(--line);
-  border-top: 0;
-  min-height: 110px;
-}
-.launcher-intro {
-  padding: 27px 25px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-.launcher-intro .editorial-label {
-  font-size: 12px;
-  letter-spacing: 1px;
-  color: #626257;
-}
-.launcher-intro > strong {
-  display: block;
-  font-size: 17px;
-  font-weight: 600;
-  margin-top: 7px;
-  letter-spacing: -0.5px;
-}
-.reservation-launcher > label {
-  margin: 20px 0;
-  border-left: 1px solid var(--line);
-  padding: 8px 25px;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-.reservation-launcher > label > span {
-  font-size: 12px;
-  letter-spacing: 1.2px;
-  font-weight: 600;
-  color: #626257;
-  line-height: 1.5;
-}
-.reservation-launcher input,
-.reservation-launcher select {
-  display: block;
-  border: 0;
-  background: none;
-  font-size: 16px;
-  font-weight: 600;
-  padding: 8px 0 0;
-  min-height: 30px;
-  outline-offset: 2px;
-  width: 100%;
-  color: var(--ink);
-  border-radius: 0;
-}
-.reservation-launcher select {
-  appearance: none;
-  padding-right: 15px;
-}
-.launcher-mode > svg {
-  position: absolute;
-  right: 22px;
-  bottom: 18px;
-  pointer-events: none;
-}
-.reservation-launcher > button {
-  background: var(--ink);
-  color: white;
-  border: 0;
-  margin: 17px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 15px 22px;
-  font-size: 14px;
-  font-weight: 600;
-  transition: background 0.2s;
-}
-.reservation-launcher > button:hover {
-  background: var(--accent);
-  color: var(--ink);
 }
 #reserve {
   scroll-margin-top: 30px;
@@ -1689,30 +1722,6 @@ body:has(.player-entry) {
     font-size: 14px;
     padding: 20px 0 0;
   }
-  .launcher-intro {
-    padding: 23px 18px;
-  }
-  .launcher-intro > strong {
-    font-size: 17px;
-  }
-  .launcher-intro .editorial-label {
-    font-size: 12px;
-  }
-  .reservation-launcher > label {
-    padding-inline: 19px;
-  }
-  .reservation-launcher > label > span {
-    font-size: 12px;
-  }
-  .reservation-launcher > button {
-    font-size: 14px;
-    margin: 15px;
-    padding: 13px;
-  }
-  .reservation-launcher input,
-  .reservation-launcher select {
-    font-size: 16px;
-  }
   .play-selector {
     gap: 6%;
     padding-right: 3.4%;
@@ -1778,23 +1787,6 @@ body:has(.player-entry) {
   }
 }
 @media (max-width: 850px) {
-  .reservation-launcher {
-    grid-template-columns: 1fr 1fr 1.15fr;
-    min-height: 95px;
-  }
-  .launcher-intro {
-    display: none;
-  }
-  .reservation-launcher > label:first-of-type {
-    border-left: 0;
-  }
-  .reservation-launcher > label {
-    margin: 17px 0;
-    padding: 4px 18px;
-  }
-  .reservation-launcher > button {
-    margin: 14px;
-  }
   .editorial-intro {
     grid-template-columns: 1fr 1.6fr 50px;
     gap: 20px;
@@ -1978,42 +1970,6 @@ body:has(.player-entry) {
   .club-mobile-links > a {
     font-size: 24px;
     letter-spacing: -1px;
-  }
-  .reservation-launcher {
-    grid-template-columns: 1fr 1fr;
-    min-height: 0;
-  }
-  .reservation-launcher > label {
-    margin: 17px 0;
-    padding: 3px 15px;
-    min-width: 0;
-  }
-  .reservation-launcher > label > span {
-    font-size: 12px;
-    letter-spacing: 1px;
-  }
-  .reservation-launcher input,
-  .reservation-launcher select {
-    font-size: 16px;
-    min-width: 0;
-    min-height: 44px;
-    padding-top: 9px;
-  }
-  .launcher-mode > svg {
-    right: 13px;
-    bottom: 10px;
-    width: 12px;
-  }
-  .reservation-launcher > button {
-    grid-column: 1/-1;
-    margin: 0;
-    border-top: 1px solid var(--line);
-    padding: 19px;
-    font-size: 14px;
-  }
-  .reservation-launcher > button > svg {
-    height: 19px;
-    width: 19px;
   }
   .editorial-intro {
     padding: 37px 20px;
@@ -2459,15 +2415,6 @@ body:has(.player-entry) {
   .club-reserve-link > svg {
     display: none;
   }
-  .reservation-launcher {
-    grid-template-columns: 1fr;
-  }
-  .reservation-launcher > label {
-    margin: 0;
-    padding: 15px;
-    border-left: 0;
-    border-bottom: 1px solid var(--line);
-  }
   .manifesto-text > h2 {
     font-size: 40px;
   }
@@ -2497,8 +2444,7 @@ body:has(.player-entry) {
   }
   .journal-image > img,
 .finish-arrow,
-.club-reserve-link,
-.reservation-launcher > button {
+.club-reserve-link {
     transition: none;
   }
 }

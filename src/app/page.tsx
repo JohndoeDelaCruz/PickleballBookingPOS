@@ -3,15 +3,17 @@ import Image from "next/image";
 import { ArrowDown, ArrowUpRight } from "lucide-react";
 import { getMembershipPlans, getVenue } from "@/lib/data";
 import { formatHour, money } from "@/lib/booking";
+import { activeCourts } from "@/lib/courts";
 import { isPublishedMembershipPlan } from "@/lib/membership";
 import { getCounterProducts } from "@/lib/counter-products";
+import { legacySchedule } from "@/lib/schedule";
 import { CounterProductCard } from "@/components/counter-product-card";
 import { LandingMotion } from "@/components/landing-motion";
+import { ScheduleOverview } from "@/components/schedule-overview";
 import {
   ClubMarquee,
   CourtsideJournal,
   PlaySelector,
-  ReservationLauncher,
 } from "@/components/editorial-interactions";
 
 export default async function Home() {
@@ -19,6 +21,7 @@ export default async function Home() {
     getVenue(), getMembershipPlans(), getCounterProducts(),
   ]);
   const publishedPlans = membershipPlans.filter(isPublishedMembershipPlan);
+  const schedule = ready ? (venue.schedule_config ?? legacySchedule(venue)) : null;
   return (
     <LandingMotion>
       <section className="editorial-opening" aria-labelledby="editorial-title">
@@ -57,7 +60,7 @@ export default async function Home() {
           </div>
         </div>
         <div className="hero-reservation" id="reserve">
-          <ReservationLauncher />
+          <ScheduleOverview config={schedule} courtCount={activeCourts(venue.courts).length} />
         </div>
       </section>
       <div className="editorial-intro" data-slide-group="left">

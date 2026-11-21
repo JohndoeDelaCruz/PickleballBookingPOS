@@ -20,8 +20,8 @@ export function ScheduleRows({ blocks, courtCount, label }: {
 
   return (
     <>
-      <div id={anchorId} className="table-scroll" tabIndex={-1} role="region" aria-label={label}>
-        <table className="admin-table public-schedule-table">
+      <div id={anchorId} className="public-schedule-rows" tabIndex={-1} role="region" aria-label={label}>
+        <table className="public-schedule-table">
           <caption className="sr-only">
             Court hours and open-play session rates, Philippine Time
           </caption>
@@ -36,8 +36,8 @@ export function ScheduleRows({ blocks, courtCount, label }: {
           <tbody>
             {ordered.slice(page.start, page.end).map((block) => (
               <tr key={block.id}>
-                <td>{daysLabel(block.days)}</td>
-                <td>{formatHour(block.start)}–{formatHour(block.end)}</td>
+                <td>{block.days.length === 7 ? "Every day" : daysLabel(block.days)}</td>
+                <td><span>{formatHour(block.start)}–</span><wbr /><span>{formatHour(block.end)}</span></td>
                 <td>
                   {block.kind === "court" ? "Private booking" : "Open play"}
                   <small>

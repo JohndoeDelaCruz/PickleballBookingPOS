@@ -1494,11 +1494,6 @@ img {
 .schedule-table .icon-button { width: 44px; height: 44px; }
 .schedule-editor-save { justify-content: flex-start; }
 .open-play-grid-cell { grid-column: 2 / -1; }
-.public-schedule { margin-top: 32px; }
-.public-schedule h3 { margin: 12px 0; font-size: 26px; }
-.public-schedule details { margin-top: 18px; }
-.public-schedule summary { cursor: pointer; font-weight: 600; padding: 12px 0; }
-.public-schedule-table { min-width: 570px; }
 .open-play-grid-button {
   width: 100%;
   min-height: 38px;

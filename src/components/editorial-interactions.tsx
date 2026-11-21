@@ -9,7 +9,7 @@ import {
   Check,
   ChevronDown,
 } from "lucide-react";
-import { addDays, localDate, money } from "@/lib/booking";
+import { money } from "@/lib/booking";
 import { Starburst } from "./starburst";
 
 export function ClubMarquee() {
@@ -52,47 +52,6 @@ export function ClubMarquee() {
         </div>
       </div>
     </section>
-  );
-}
-
-export function ReservationLauncher() {
-  const today = localDate();
-  return (
-    <form
-      action="/book"
-      method="get"
-      className="reservation-launcher"
-      data-slide="left"
-      aria-label="Plan a court session"
-    >
-      <div className="launcher-intro">
-        <span className="editorial-label">A LITTLE TIME WELL SPENT</span>
-        <strong>Meet you on court.</strong>
-      </div>
-      <label className="launcher-date">
-        <span>01 / SESSION DATE</span>
-        <input
-          aria-label="Session date"
-          name="date"
-          type="date"
-          min={today}
-          max={addDays(today, 30)}
-          defaultValue={today}
-          required
-        />
-      </label>
-      <label className="launcher-mode">
-        <span>02 / TYPE OF PLAY</span>
-        <select name="play" aria-label="Type of play" defaultValue="court">
-          <option value="court">Private court</option>
-          <option value="open">Open play</option>
-        </select>
-        <ChevronDown size={15} />
-      </label>
-      <button type="submit">
-        Find my next game <ArrowUpRight size={21} />
-      </button>
-    </form>
   );
 }
 
