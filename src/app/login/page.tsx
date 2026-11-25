@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
 import { redirect } from "next/navigation";
 import { AuthForm } from "@/components/auth-form";
-import { getSession } from "@/lib/data";
+import { getSession, getVenueSettings } from "@/lib/data";
 import { authRedirect } from "@/lib/redirect";
-export const metadata: Metadata = { title: "Players’ entrance" };
+import { defaultVenue } from "@/lib/types";
+
+export const metadata: Metadata = { title: "Your account" };
+
 export default async function LoginPage({
   searchParams,
 }: {
@@ -17,17 +20,38 @@ export default async function LoginPage({
 }) {
   const params = await searchParams;
   const recovery = params.recovery === "true";
-  const { user, staff } = await getSession();
+  const [{ user, staff }, settings] = await Promise.all([
+    getSession(),
+    getVenueSettings(),
+  ]);
   if (user && !recovery && !params.error)
     redirect(authRedirect(params.next, staff));
+  const venueName = settings?.name?.trim() || defaultVenue.name;
+  const wordmark = (
+    <Link href="/" aria-label={`${venueName} home`} className="club-wordmark" title={venueName}>
+      <span className="club-wordmark-name">
+        {venueName}<span className="wordmark-dot" aria-hidden="true">.</span>
+      </span>
+    </Link>
+  );
+
   return (
     <main id="main" className="player-entry">
-      <div className="player-entry-title">
-        <span className="editorial-label">PLAYERS’ ENTRANCE / RALLY CLUB</span>
-        <p className="player-entry-headline">In good company.</p>
-        <p>Your reservations. Your next game. All in one place.</p>
+      <div className="auth-visual">
+        <div className="auth-visual-photo">
+          <Image
+            src="/images/rally-detail.webp"
+            alt=""
+            fill
+            sizes="(min-width: 850px) 50vw, 100vw"
+            loading="eager"
+          />
+        </div>
+        <div className="auth-visual-brand">{wordmark}</div>
+        <p>In good<br />company.</p>
       </div>
-      <div className="player-entry-form">
+      <div className="auth-panel">
+        <div className="auth-panel-brand">{wordmark}</div>
         <AuthForm
           next={typeof params.next === "string" ? params.next : undefined}
           recovery={recovery}
@@ -39,9 +63,13 @@ export default async function LoginPage({
                 : undefined
           }
         />
-      </div>
-      <div className="player-entry-return">
-        <Link href="/demo">Explore the club demo <ArrowUpRight size={16} aria-hidden="true" /></Link>
+        <footer className="auth-panel-footer">
+          <span>© {new Date().getFullYear()} {venueName}</span>
+          <div>
+            <Link href="/book">Browse courts</Link>
+            <Link href="/privacy">Privacy policy</Link>
+          </div>
+        </footer>
       </div>
     </main>
   );

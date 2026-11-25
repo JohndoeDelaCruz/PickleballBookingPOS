@@ -86,21 +86,13 @@ export function Header({
     document.addEventListener("keydown", close);
     return () => document.removeEventListener("keydown", close);
   }, [open]);
-  if (pathname.startsWith("/demo") || pathname.startsWith("/staff") || pathname.startsWith("/admin") || (pathname === "/account" && staff))
+  if (pathname === "/login" || pathname.startsWith("/demo") || pathname.startsWith("/staff") || pathname.startsWith("/admin") || (pathname === "/account" && staff))
     return null;
   const wordmark = (
     <Link href="/" aria-label={`${venueName} home`} className="club-wordmark" title={venueName}>
       <span className="club-wordmark-name">{venueName}<span className="wordmark-dot" aria-hidden="true">.</span></span>
       <small>PICKLEBALL<br />SOCIAL CLUB</small>
     </Link>
-  );
-  if (pathname === "/login") return (
-    <header className="club-header club-header-auth">
-      {wordmark}
-      <Link className="auth-header-link" href="/book">
-        Browse courts <ArrowUpRight size={16} aria-hidden="true" />
-      </Link>
-    </header>
   );
   const links = [
     { href: "/#play", label: "The game" },

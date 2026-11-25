@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowUpRight, ArrowLeft } from "lucide-react";
+import { ArrowUpRight, Eye, EyeOff, UserRound } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { authRedirect, safeRedirect } from "@/lib/redirect";
 import { readStaffMembership } from "@/lib/session-access";
@@ -24,6 +24,7 @@ export function AuthForm({
   );
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(initialError);
@@ -115,161 +116,144 @@ export function AuthForm({
   }
   function changeMode(value: typeof mode) {
     setMode(value);
+    setPasswordVisible(false);
     setCaptchaToken("");
     setCaptchaRevision((revision) => revision + 1);
     setError("");
     setMessage("");
   }
   return (
-    <div className="auth-form" data-mode={mode}>
+    <form className="auth-form" method="post" onSubmit={submit}>
       <div className="auth-intro">
-        <span className="eyebrow">YOUR NEXT SESSION STARTS HERE</span>
         <h1>
           {mode === "signup"
-            ? "Join the club."
+            ? "Create an account"
             : mode === "forgot"
-              ? "Reset your password."
+              ? "Reset your password"
               : mode === "reset"
-                ? "A fresh start."
-                : "Welcome back."}
+                ? "Choose a new password"
+                : "Log in"}
         </h1>
-        <p>
-          {mode === "signup"
-            ? "Create your account and make room for more court time."
-            : mode === "forgot"
-              ? "Enter your email and we’ll send a link to reset your password."
-              : mode === "reset"
-                ? "Choose a new password for your Rally account."
-                : "Log in to reserve a court and keep track of your next game."}
-        </p>
-      </div>
-      {(mode === "login" || mode === "signup") && (
-          <div className="auth-tabs">
+        {mode === "forgot" && (
+          <p>Enter your email and we’ll send a link to reset your password.</p>
+        )}
+        {mode !== "reset" && (
+          <div className="auth-mode-switch">
+            {mode !== "forgot" && (
+              <span>{mode === "login" ? "New here?" : "Already have an account?"}</span>
+            )}
             <button
-              className={mode === "login" ? "active" : ""}
+              type="button"
               disabled={busy}
-              onClick={() => changeMode("login")}
+              onClick={() => changeMode(mode === "login" ? "signup" : "login")}
             >
-              Log in
-            </button>
-            <button
-              className={mode === "signup" ? "active" : ""}
-              disabled={busy}
-              onClick={() => changeMode("signup")}
-            >
-              Create account
+              <UserRound size={16} aria-hidden="true" />
+              {mode === "login" ? "Create account" : "Log in"}
             </button>
           </div>
-      )}
-      <form className="auth-fields-form" onSubmit={submit}>
-        <div className="auth-fields">
-          {mode === "signup" && (
-            <label className="field">
-              <span>Full name</span>
+        )}
+      </div>
+      <div className="auth-fields">
+        {mode === "signup" && (
+          <label className="field">
+            <span>Full name</span>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              name="name"
+              autoComplete="name"
+              placeholder="Your full name"
+              required
+              minLength={2}
+              maxLength={100}
+            />
+          </label>
+        )}
+        {mode !== "reset" && (
+          <label className="field">
+            <span>Email address</span>
+            <input
+              type="email"
+              name="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+              placeholder="you@example.com"
+              required
+            />
+          </label>
+        )}
+        {mode !== "forgot" && (
+          <div className="field">
+            <label htmlFor="auth-password">{mode === "reset" ? "New password" : "Password"}</label>
+            <div className="password-input">
               <input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                autoComplete="name"
-                placeholder="Your full name"
-                required
-                minLength={2}
-                maxLength={100}
-              />
-            </label>
-          )}
-          {mode !== "reset" && (
-            <label className="field">
-              <span>Email address</span>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                autoComplete="email"
-                placeholder="you@example.com"
-                required
-              />
-            </label>
-          )}
-          {mode !== "forgot" && (
-            <label className="field">
-              <span>{mode === "reset" ? "New password" : "Password"}</span>
-              <input
-                type="password"
+                id="auth-password"
+                name="password"
+                type={passwordVisible ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                autoComplete={
-                  mode === "login" ? "current-password" : "new-password"
-                }
-                placeholder={
-                  mode === "signup" ? "At least 8 characters" : "Your password"
-                }
+                autoComplete={mode === "login" ? "current-password" : "new-password"}
+                placeholder={mode === "login" ? "Your password" : "At least 8 characters"}
                 required
                 minLength={mode === "login" ? 1 : 8}
                 maxLength={128}
               />
-            </label>
-          )}
-        </div>
-        {needsCaptcha && (
-          <TurnstileCheck
-            key={mode}
-            action={mode === "forgot" ? "password_reset" : mode}
-            revision={captchaRevision}
-            onToken={setCaptchaToken}
-          />
-        )}
-        <div className="auth-feedback">
-          {error && (
-            <div className="error-message" role="alert">
-              {error}
+              <button
+                type="button"
+                aria-label={passwordVisible ? "Hide password" : "Show password"}
+                onClick={() => setPasswordVisible((visible) => !visible)}
+              >
+                {passwordVisible ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
+              </button>
             </div>
-          )}
-          {message && (
-            <div className="success-message" role="status">
-              {message}
-            </div>
-          )}
-        </div>
-        <button
-          className="button button-dark"
-          disabled={busy || (needsCaptcha && !captchaToken)}
-        >
-          {busy
-            ? "One moment…"
-            : mode === "signup"
-              ? "Create account"
-              : mode === "forgot"
-                ? "Send reset link"
-                : mode === "reset"
-                  ? "Update password"
-                  : "Let’s play"}
-          <ArrowUpRight size={18} />
-        </button>
-      </form>
-      <div className="auth-bottom">
-        <Link href="/book">
-          <ArrowLeft size={12} style={{ display: "inline", marginRight: 5 }} />
-          Browse courts
-        </Link>
-        {mode === "login" ? (
-          <button onClick={() => changeMode("forgot")}>Forgot password?</button>
-        ) : (
-          mode === "forgot" && (
-            <button onClick={() => changeMode("login")}>Back to log in</button>
-          )
+          </div>
         )}
       </div>
-      {mode === "signup" && (
-        <div className="auth-privacy">
-          <p className="small-print">
-            By creating an account, you agree to our{" "}
-            <Link href="/privacy" style={{ textDecoration: "underline" }}>
-              privacy policy
-            </Link>
-            . We use your details to manage your reservations.
-          </p>
+      {mode === "login" && (
+        <button type="button" className="auth-forgot" disabled={busy} onClick={() => changeMode("forgot")}>
+          Forgot password?
+        </button>
+      )}
+      {needsCaptcha && (
+        <TurnstileCheck
+          key={mode}
+          action={mode === "forgot" ? "password_reset" : mode}
+          revision={captchaRevision}
+          onToken={setCaptchaToken}
+        />
+      )}
+      {error && (
+        <div className="error-message" role="alert">
+          {error}
         </div>
       )}
-    </div>
+      {message && (
+        <div className="success-message" role="status">
+          {message}
+        </div>
+      )}
+      <button
+        className="button button-lime"
+        disabled={busy || (needsCaptcha && !captchaToken)}
+      >
+        {busy
+          ? "One moment…"
+          : mode === "signup"
+            ? "Create account"
+            : mode === "forgot"
+              ? "Send reset link"
+              : mode === "reset"
+                ? "Update password"
+                : "Log in"}
+        <ArrowUpRight size={18} aria-hidden="true" />
+      </button>
+      {mode === "signup" && (
+        <p className="small-print auth-privacy">
+          By creating an account, you agree to our <Link href="/privacy">privacy policy</Link>.
+          We use your details to manage your reservations.
+        </p>
+      )}
+    </form>
   );
 }
